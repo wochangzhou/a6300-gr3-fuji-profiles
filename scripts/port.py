@@ -32,7 +32,8 @@ class Table:
         o=3*(vi*s.H*s.S+hi*s.S+si); return s.d[o:o+3]
     def apply(s,rgb):
         h,sat,v=rgb2hsv(*rgb)
-        ve=enc(v) if s.e==1 else v
+        # DNG SDK: 2.5D tables (V==1) skip the input encode but still decode the output
+        ve=enc(v) if (s.e==1 and s.V>1) else v
         hs=h*s.H/6.0; h0=int(math.floor(hs)); hf=hs-h0; h0%=s.H; h1=(h0+1)%s.H
         ss=min(max(sat,0),1)*(s.S-1); s0=min(int(ss),s.S-2) if s.S>1 else 0; sf=ss-s0 if s.S>1 else 0
         if s.V>1:

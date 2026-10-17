@@ -29,7 +29,7 @@ Lightroom 处理 RAW 时，DCP 配置文件按下面的顺序起作用：
         ─(LookTable：风格)→ ─(ToneCurve：影调)→ 输出
 ```
 
-Adobe Standard 的目标是让不同相机的“基础颜色”尽量一致，风格（LookTable 和 ToneCurve）建立在这一层之上。脚本里按 DNG SDK 的参考实现重写了 HSV 查表（三线性插值、色相环绕、sRGB 编码的明度轴）和保色相的 RGB 色调曲线，见 `scripts/port.py`。
+Adobe Standard 的目标是让不同相机的“基础颜色”尽量一致，风格（LookTable 和 ToneCurve）建立在这一层之上。`scripts/port.py` 按 DNG SDK 的参考实现重写了 HSV 查表（三线性插值、色相环绕、sRGB 编码的明度轴，以及单明度层表的特殊路径）。色调曲线没有在模拟器里实现，生成 DCP 时只原样复制 `ProfileToneCurve`，所以下面的验证数字都不包含色调曲线和曝光偏移。
 
 ### 1. GR III 风格移植（`scripts/port.py`）
 
@@ -58,7 +58,8 @@ GR III 的机内风格 DCP 只能用于 GR III。移植步骤：
 - 差异整体比 GR III 小，红、橙、黄都在 1.5° 以内。
 - 修正参数（色相核宽、饱和度核宽、收缩强度）用网格搜索加留一法选出：色相 2.16° → 1.89°，饱和度没有改善（不修），明度 0.020 → 0.013（修）。
 - 肤色 +4.6°、绿 -7.8°、青绿 -5.1°、蓝花 +4.8° 都是孤立点，留一法预测不出来，所以不硬修。
-- 修正作为一张 90×16×1 的 LookTable 加到 A6300 的 “Adobe Standard Linear” 底片上，名字不变，富士 LUT 照常引用它。
+- 修正作为一张 90×16×16、sRGB 编码的 LookTable 加到 A6300 的 “Adobe Standard Linear” 底片上，名字不变，富士 LUT 照常引用它。
+- 注意：早期版本用的是 90×16×1 的单明度层表并标为 sRGB 编码。按 DNG SDK 参考实现（`dng_reference.cpp` 的 `RefBaselineHueSatMap`），单明度层不编码输入、却仍会解码输出，会把 18% 灰压到约 2.7%。现已改为三维表，模拟器也同步改成 SDK 的行为。
 
 ### 3. 分组（`scripts/fuji/groups.py`）
 
