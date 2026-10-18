@@ -61,10 +61,6 @@ GR III 的机内风格 DCP 只能用于 GR III。移植步骤：
 - 修正作为一张 90×16×16、sRGB 编码的 LookTable 加到 A6300 的 “Adobe Standard Linear” 底片上，名字不变，富士 LUT 照常引用它。
 - 注意：早期版本用的是 90×16×1 的单明度层表并标为 sRGB 编码。按 DNG SDK 参考实现（`dng_reference.cpp` 的 `RefBaselineHueSatMap`），单明度层不编码输入、却仍会解码输出，会把 18% 灰压到约 2.7%。现已改为三维表，模拟器也同步改成 SDK 的行为。
 
-### 2b. 渐进饱和度压缩（`scripts/gr3/softsat.py`）
-
-GR 的 Positive Film 等风格在 +0.55EV 曝光偏移和色调曲线之后，会把饱和红推出 sRGB 色域（实拍红外套出现 G=B=0）。对 4 个彩色风格的每个 LookTable 节点，二分求出完整渲染后刚好超出 sRGB 的饱和度上限，再按软拐点（低于上限 75% 不动，以上按 tanh 收敛）压缩输出饱和度；色相、明度不变，Monotone 不处理。色卡上平均饱和度下降 1.5%～5%，最鲜艳的色块下降 9%～14%。这是对 GR 风格的有意改动，不再是原样移植。
-
 ### 3. 分组（`scripts/fuji/groups.py`）
 
 DCP 不能指定组。所以给每个 GR III 的 DCP 生成一个 Look 类型的 XMP 配置文件（`crs:CameraProfile` 指向 DCP，`crs:Group` 设为 “A6300 理光模拟”，只对 ILCE-6300 显示），并配上对应预设；富士的 22 个 XMP 组名改为 “A6300 富士模拟”。
