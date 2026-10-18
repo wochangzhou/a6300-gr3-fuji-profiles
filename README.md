@@ -51,18 +51,17 @@
 目标是 X1D 的 Phocus 输出（Adobe RGB TIFF），与 A6300 属于同一批拍摄。
 
 1. **初始拟合**（`hbfit.py`、`hbbuild.py`）：A6300 基础颜色 → X1D 输出。用灰阶拟合色调曲线，用色卡拟合 LookTable（核回归）。BaselineExposureOffset +0.338，使 A6300 进入 LookTable 时的亮度对应 K=0.66。
-2. **按 Lightroom 实际输出修正**（`hbshift2.py`）：比较 Lightroom 导出和 Phocus 目标，修正彩色节点，消除洋红偏色。
-3. **整张图修正**（`align.py`、`warp.py`、`dense_sample.py`、`dense_correct.py`）：
+2. **整张图修正**（`align.py`、`warp.py`、`dense_sample.py`、`dense_correct.py`）：
    - 对齐：先做仿射，再按 64px 块做相关匹配，最后拟合三次多项式形变。中位残差约 1.6 px，见 `data/hasselblad/align_check.png`。
    - 取样：约 7 万个平整色块；左半边用于拟合，右半边和两个色轮用于检验。
    - 修正：叠加到 LookTable 上，幅度有上限：色相 ±10°，饱和度 ×0.8–1.2，明度 ×0.93–1.05。
-4. **高饱和区淡出**（`satfade.py`）：饱和度高于所有校准样本的区域（HSV s 0.74→0.92），LookTable 的色相和饱和度修正逐渐收回到不处理，不在没有数据的地方外推。
-5. **Nature**（`nature_measure.py`、`nature_build.py`）：
+3. **高饱和区淡出**（`satfade.py`）：饱和度高于所有校准样本的区域（HSV s 0.74→0.92），LookTable 的色相和饱和度修正逐渐收回到不处理，不在没有数据的地方外推。
+4. **Nature**（`nature_measure.py`、`nature_build.py`）：
    - 测量 Nature 相对 Standard 的差别：Phocus 把白平衡固定在 5500K、色调 +10，造成灰阶整体偏青蓝；此外红、橙、肤色往品红方向转约 10°。
    - 颜色差异叠加到 Standard 的 LookTable 和色调曲线上，高饱和区按 0.74→0.85 淡出。
    - 预设 “Hasselblad X1D Nature” 的白平衡跟随拍摄设置；“Hasselblad X1D Nature 5500K” 另用 RGB 点曲线模拟上述偏色。
 
-Standard 的检验结果（ΔE2000 均值）：色卡 0.80，右半边彩色 1.72，右半边中性色 1.81，色轮区域的密集取样 1.75，原 48 点色轮 4.62。
+Standard 的检验结果（ΔE2000 均值）：色卡 0.83，右半边彩色 1.77，右半边中性色 1.85，色轮区域的密集取样 1.80，原 48 点色轮 4.76。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 
