@@ -60,8 +60,15 @@
    - 测量 Nature 相对 Standard 的差别：Phocus 把白平衡固定在 5500K、色调 +10，造成灰阶整体偏青蓝；此外红、橙、肤色往品红方向转约 10°。
    - 颜色差异叠加到 Standard 的 LookTable 和色调曲线上，高饱和区按 0.74→0.85 淡出。
    - 预设 “Hasselblad X1D Nature” 的白平衡跟随拍摄设置；“Hasselblad X1D Nature 5500K” 另用 RGB 点曲线模拟上述偏色。
+5. **暖光**（`lowlight_sample.py`、`warm_matrix.py`）：用 dpreview 低光样张（约 2550K，A6300 RAW 与 X1D Phocus 输出，构图与日光组相同，沿用日光组的对齐）。
+   - 只修改 StdA（2856K）端的 ForwardMatrix：FM1′ = C·FM1。C 的 6 个非对角项是自由参数，对角项由"D50 白点不变"确定，所以中性灰保持中性。
+   - 目标：色卡和棋盘格训练块的 ΔE2000 最小，曝光按 N5 对齐。肤色色相的块做约束，误差变大就罚分。另加正则 2·|C−I|²。
+   - D65 端精确补偿：FM2′ = FM2 + w/(1−w)·(FM1 − FM1′)，w 为日光照片的 StdA 权重（0.04），所以日光下插值后的矩阵完全不变。
+   - Standard 和 Nature 共用这组矩阵。
 
 Standard 的检验结果（ΔE2000 均值）：色卡 0.83，右半边彩色 1.77，右半边中性色 1.85，色轮区域的密集取样 1.80，原 48 点色轮 4.76。
+
+暖光（约 2550K）：色卡 3.22，色卡肤色块 2.26，场景肤色检验块 6.27，色轮区域 2.60，灰阶 0.60。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 
@@ -74,7 +81,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 
 ## 局限
 
-- 只有一种光源（影棚日光，约 D65 端点）。钨丝灯、低色温 LED、荧光灯下的表现没有验证。
+- 理光和富士只用影棚日光（约 D65 端点）校准。哈苏另有暖光（约 2550K）一个测量点，中间色温靠 Lightroom 插值。低色温 LED、荧光灯等光谱不连续的光源都没有验证。
 - 各机型使用不同镜头，镜头的色差和眩光会混入测量。
 - 验证集来自同一张照片和同一光源，只能说明对“别的颜色”能推广，不能说明对“别的光源”能推广。
 - 富士底片的颜色表只用 Provia 验证过，但会影响全部风格。
@@ -96,14 +103,14 @@ scripts/export_tables.py  从拟合好的 DCP 导出本项目自己的标签到 
 scripts/fit/              拟合与检查脚本（需要 numpy、rawpy、tifffile 和 dpreview 原图；构建时不运行）
 scripts/raw/              RAW 解码与取样（需要 rawpy、numpy）
 data/raw/                 色卡与色轮的线性相机 RGB 均值
-data/profiles.json, data/tables/  哈苏 Standard/Nature、富士底片的 LookTable、色调曲线、曝光偏移
+data/profiles.json, data/tables/  哈苏 Standard/Nature（暖光端 ForwardMatrix、LookTable、色调曲线、曝光偏移）、富士底片的 LookTable
 data/hasselblad/          X1D Phocus 色卡/色轮测量、Nature 测量、对齐检查图
 templates/                安装说明和哈苏预设
 ```
 
 ## 版权说明
 
-- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的 LookTable 和色调曲线，矩阵与 HueSatMap 在构建时从本机读取。
+- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的部分（LookTable、色调曲线、哈苏暖光端的 ForwardMatrix），其余矩阵和 HueSatMap 在构建时从本机读取。
 - 富士 LUT 来自 TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation 和 abpy/FujifilmCameraProfiles，两者均未声明许可证，构建时从上游克隆。
 - dpreview 的 RAW、Phocus 和 Lightroom 导出图不在仓库内，`data/` 只保存测量值。
 - 本仓库的脚本、数据和文档以 MIT 许可证发布。

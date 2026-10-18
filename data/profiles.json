@@ -44,6 +44,20 @@
      "file": "tables/hasselblad_nature_50942.bin"
     }
    ],
+   "50964": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_nature_50964.bin"
+    }
+   ],
+   "50965": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_nature_50965.bin"
+    }
+   ],
    "50981": [
     4,
     3,
@@ -94,6 +108,20 @@
     79,
     {
      "file": "tables/hasselblad_standard_50942.bin"
+    }
+   ],
+   "50964": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_standard_50964.bin"
+    }
+   ],
+   "50965": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_standard_50965.bin"
     }
    ],
    "50981": [
