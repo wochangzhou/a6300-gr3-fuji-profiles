@@ -61,20 +61,8 @@
    - 测量 Nature 相对 Standard 的差别：Phocus 把白平衡固定在 5500K、色调 +10，造成灰阶整体偏青蓝；此外红、橙、肤色往品红方向转约 10°。
    - 颜色差异叠加到 Standard 的 LookTable 和色调曲线上，高饱和区按 0.74→0.85 淡出。
    - 预设 “Hasselblad X1D Nature” 的白平衡跟随拍摄设置；“Hasselblad X1D Nature 5500K” 另用 RGB 点曲线模拟上述偏色。
-6. **暖光（双光源）**（`lowlight_sample.py`、`tungsten_stda.py`、`tungsten_d65_comp.py`）：
-   - DCP 有两张 HueSatMap，分别对应 StdA（2856K）和 D65，Lightroom 按照片色温在两者之间插值。
-   - 用 dpreview 低光样张（约 2550K，两台相机同一场景，A6300 按灰块白平衡，曝光按灰阶对齐）只拟合 StdA 那张表。训练和检验按 250px 棋盘格分区，迭代 6 次。
-   - 日光照片在插值时仍有约 4% 的权重落在 StdA 表上，所以再对 D65 那张表做一次微调，让日光输出保持不变（色相改动不超过 1.7°）。
-   - Standard 和 Nature 共用这两张表。
 
-Standard 的检验结果（ΔE2000 均值）：
-
-| | 色卡 | 场景彩色（检验区） | 场景中性色 | 色轮区域 |
-|---|---|---|---|---|
-| 日光（约 6200K） | 0.81 | 1.72 | 1.81 | 1.75 |
-| 暖光（约 2550K） | 0.94 | 1.40 | 1.51 | 1.74 |
-
-日光那一行的场景彩色按右半边计；暖光那一行按棋盘格检验块、只计饱和度 > 0.08 的块。原 48 点色轮（日光）为 4.62。
+Standard 的检验结果（ΔE2000 均值）：色卡 0.80，右半边彩色 1.72，右半边中性色 1.81，色轮区域的密集取样 1.75，原 48 点色轮 4.62。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 
@@ -87,7 +75,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 
 ## 局限
 
-- 理光和富士只有一种光源（影棚日光）。哈苏有日光和暖光（约 2550K）两个测量点，中间色温靠 Lightroom 插值，没有实测；光谱不连续的光源（部分 LED、荧光灯）都没有验证。
+- 只有一种光源（影棚日光，约 D65 端点）。钨丝灯、低色温 LED、荧光灯下的表现没有验证。
 - 各机型使用不同镜头，镜头的色差和眩光会混入测量。
 - 验证集来自同一张照片和同一光源，只能说明对“别的颜色”能推广，不能说明对“别的光源”能推广。
 - 富士底片的颜色表只用 Provia 验证过，但会影响全部风格。
@@ -109,14 +97,14 @@ scripts/export_tables.py  从拟合好的 DCP 导出本项目自己的标签到 
 scripts/fit/              拟合与检查脚本（需要 numpy、rawpy、tifffile 和 dpreview 原图；构建时不运行）
 scripts/raw/              RAW 解码与取样（需要 rawpy、numpy）
 data/raw/                 色卡与色轮的线性相机 RGB 均值
-data/profiles.json, data/tables/  哈苏 Standard/Nature（HueSatMap、LookTable、色调曲线、曝光偏移）、富士底片 LookTable
-data/hasselblad/          X1D Phocus 色卡/色轮测量（日光、低光）、Nature 测量、对齐检查图
+data/profiles.json, data/tables/  哈苏 Standard/Nature、富士底片的 LookTable、色调曲线、曝光偏移
+data/hasselblad/          X1D Phocus 色卡/色轮测量、Nature 测量、对齐检查图
 templates/                安装说明和哈苏预设
 ```
 
 ## 版权说明
 
-- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的表（LookTable、色调曲线，以及哈苏重新拟合的 HueSatMap），色彩矩阵在构建时从本机读取。
+- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的 LookTable 和色调曲线，矩阵与 HueSatMap 在构建时从本机读取。
 - 富士 LUT 来自 TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation 和 abpy/FujifilmCameraProfiles，两者均未声明许可证，构建时从上游克隆。
 - dpreview 的 RAW、Phocus 和 Lightroom 导出图不在仓库内，`data/` 只保存测量值。
 - 本仓库的脚本、数据和文档以 MIT 许可证发布。
