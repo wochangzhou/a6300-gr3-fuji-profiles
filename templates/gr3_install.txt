@@ -1,4 +1,4 @@
-理光 GR III 风格（移植到 Sony A6300，已按 dpreview 色卡对齐）
+理光 GR III 风格（移植到 Sony A6300，已按 dpreview 影棚 RAW 色卡对齐）
 
 安装（macOS）：
 1. 把 CameraProfiles 里的 7 个 .dcp 复制到

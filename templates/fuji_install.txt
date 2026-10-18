@@ -1,13 +1,13 @@
-富士胶片模拟（Sony A6300，底片已按 dpreview 色卡对齐到 X-S20）
+富士胶片模拟（Sony A6300，使用上游原版 Adobe Standard Linear 底片）
 胶片 LUT 来自 github.com/TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation（源自 abpy/FujifilmCameraProfiles）
 
 安装（macOS）：
 1. CameraProfiles 里的 .dcp 复制到
    ~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/
-   （会替换原来的 "Sony ILCE-6300 Adobe Standard Linear.dcp"）
 2. Settings 里的 "Fujifilm Simulation LUT" 文件夹复制到
    ~/Library/Application Support/Adobe/CameraRaw/Settings/
 Windows 对应 C:\Users\<用户名>\AppData\Roaming\Adobe\CameraRaw\ 下的同名文件夹。
 
 重启 Lightroom，打开 A6300 的 RAW，在配置文件浏览器里选 Classic Chrome 等，
 配置文件和预设都在 "A6300 富士模拟" 组里。
+
