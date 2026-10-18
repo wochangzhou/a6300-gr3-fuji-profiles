@@ -79,8 +79,11 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
     pf=read(f"{LR}/Camera/Ricoh GR III/RICOH GR III Camera {style}.dcp")
     camToPP_PF=mm(XYZ2PP,m3(tag(pf,50965)))
     LOOK=table(pf,50981,50982,51108) if 50981 in pf else None
+    # DNG render order: HueSatMap -> exposure (BaselineExposure + offset) -> LookTable -> ToneCurve.
+    # Both cameras are normalised to the same scene white, so both LookTables see E*base.
+    E=2**(tag(pf,51109)[0] if 51109 in pf else 0.0)
     def target(c):
-        p=mv(camToPP_PF,c); return LOOK.apply(p) if LOOK else p
+        p=[E*x for x in mv(camToPP_PF,c)]; return LOOK.apply(p) if LOOK else [min(x,1.0) for x in p]
     out=[0.0]*(HD*SD*VD*3); worst=0
     for vi in range(VD):
         v=dec(vi/(VD-1)) if vi else 1e-4
@@ -88,7 +91,7 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
             for si in range(SD):
                 s=max(si/(SD-1),1e-3)
                 X=hsv2rgb(hi*6/HD,s,v)
-                c,err=base_inv(X); worst=max(worst,err)
+                c,err=base_inv([x/E for x in X]); worst=max(worst,err)
                 T=target(c); hT,sT,vT=rgb2hsv(*T); sT=min(sT,1.0); hX,sX,vX=rgb2hsv(*X)
                 dh=((hT-hX+3)%6-3)*60 if sT>1e-4 else 0.0
                 ss=sT/sX if si>0 else 1.0
@@ -108,5 +111,5 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
     NEW=Table((HD,SD,VD),out,1); random.seed(1); e=0
     for _ in range(3000):
         c=[random.random()**2*0.9 for _ in range(3)]
-        a=NEW.apply(base(c)); b=target(c); e=max(e,max(abs(enc(a[k])-enc(b[k])) for k in range(3)))
+        a=NEW.apply([E*x for x in base(c)]); b=target(c); e=max(e,max(abs(enc(a[k])-enc(b[k])) for k in range(3)))
     print(f"{style}: inverse residual {worst:.1e}, max round-trip err (sRGB-encoded) {e:.3f}")

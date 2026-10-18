@@ -1,4 +1,4 @@
-富士胶片模拟（Sony A6300，使用上游原版 Adobe Standard Linear 底片）
+富士胶片模拟（Sony A6300，上游原版 Adobe Standard Linear 底片 + 按 X-S10 PROVIA 校准的颜色表，无曝光偏移）
 胶片 LUT 来自 github.com/TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation（源自 abpy/FujifilmCameraProfiles）
 
 安装（macOS）：

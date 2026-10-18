@@ -1,0 +1,129 @@
+{
+ "fuji_base": {
+  "out": "Sony ILCE-6300 Adobe Standard Linear.dcp",
+  "own": {
+   "50981": [
+    4,
+    3,
+    "5a0000001000000010000000"
+   ],
+   "50982": [
+    11,
+    69120,
+    {
+     "file": "tables/fuji_base_50982.bin"
+    }
+   ],
+   "51108": [
+    4,
+    1,
+    "01000000"
+   ]
+  },
+  "ref": "upstream_linear"
+ },
+ "hasselblad_nature": {
+  "out": "Sony ILCE-6300 Hasselblad X1D Nature.dcp",
+  "own": {
+   "50936": [
+    2,
+    22,
+    "48617373656c626c616420583144204e617475726500"
+   ],
+   "50940": [
+    11,
+    512,
+    {
+     "file": "tables/hasselblad_nature_50940.bin"
+    }
+   ],
+   "50942": [
+    2,
+    77,
+    {
+     "file": "tables/hasselblad_nature_50942.bin"
+    }
+   ],
+   "50981": [
+    4,
+    3,
+    "5a0000001000000010000000"
+   ],
+   "50982": [
+    11,
+    69120,
+    {
+     "file": "tables/hasselblad_nature_50982.bin"
+    }
+   ],
+   "51108": [
+    4,
+    1,
+    "01000000"
+   ],
+   "51109": [
+    10,
+    1,
+    "340d000010270000"
+   ],
+   "51110": [
+    4,
+    1,
+    "01000000"
+   ]
+  },
+  "ref": "adobe_standard"
+ },
+ "hasselblad_standard": {
+  "out": "Sony ILCE-6300 Hasselblad X1D Standard.dcp",
+  "own": {
+   "50936": [
+    2,
+    24,
+    "48617373656c626c616420583144205374616e6461726400"
+   ],
+   "50940": [
+    11,
+    512,
+    {
+     "file": "tables/hasselblad_standard_50940.bin"
+    }
+   ],
+   "50942": [
+    2,
+    79,
+    {
+     "file": "tables/hasselblad_standard_50942.bin"
+    }
+   ],
+   "50981": [
+    4,
+    3,
+    "5a0000001000000010000000"
+   ],
+   "50982": [
+    11,
+    69120,
+    {
+     "file": "tables/hasselblad_standard_50982.bin"
+    }
+   ],
+   "51108": [
+    4,
+    1,
+    "01000000"
+   ],
+   "51109": [
+    10,
+    1,
+    "340d000010270000"
+   ],
+   "51110": [
+    4,
+    1,
+    "01000000"
+   ]
+  },
+  "ref": "adobe_standard"
+ }
+}

@@ -1,6 +1,6 @@
 # End-to-end check on independent samples: GR III RAW through Adobe's GR III
 # camera-matching style vs A6300 RAW through a ported profile. Both rendered
-# with the style's BaselineExposureOffset + hue-preserving tone curve, compared as
+# in DNG order (exposure before LookTable) + hue-preserving tone curve, compared as
 # CIE dE76 / dE2000 in Lab D50.
 import sys,json,math,bisect
 S,LRP,RAWP,BASEJ,RAWS,BASES=sys.argv[1:7]; CANDS=sys.argv[7:]
@@ -38,10 +38,10 @@ print(f"{'style':14s} " + "  ".join(f"{c.split('|')[0]:>22s}" for c in CANDS))
 for style in ["Standard","Positive Film","Negative Film","Vivid"]:
     g=read(f"{LRP}/Camera/Ricoh GR III/RICOH GR III Camera {style}.dcp"); LK=table(g,50981,50982,51108); c2p=mm(XYZ2PP,m3(tag(g,50965)))
     E=2**tag(g,51109)[0]; tc=curve(tag(g,50940))
-    tgt={n:lab(rgbtone([E*c for c in LK.apply(mv(c2p,[v[k]*sc/neutral[k] for k in range(3)]))],tc)) for n,v in RS.items()}
+    tgt={n:lab(rgbtone(LK.apply([E*x for x in mv(c2p,[v[k]*sc/neutral[k] for k in range(3)])]),tc)) for n,v in RS.items()}
     row=[]
     for cand in CANDS:
         lbl,d=cand.split('|'); t=read(f"{d}/Sony ILCE-6300 GR III {style}.dcp"); T=table(t,50981,50982,51108)
-        es=sorted(de2000(lab(rgbtone([E*c for c in T.apply(BS[n])],tc)),tgt[n]) for n in RS)
+        es=sorted(de2000(lab(rgbtone(T.apply([E*x for x in BS[n]]),tc)),tgt[n]) for n in RS)
         row.append(f"{sum(es)/len(es):5.2f} (p90 {es[int(.9*(len(es)-1))]:5.2f})")
     print(f"{style:14s} "+"  ".join(f"{r:>22s}" for r in row))
