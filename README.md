@@ -48,7 +48,7 @@
 
 ## 哈苏 X1D（`scripts/fit/hasselblad/`）
 
-目标是 X1D 的 Phocus 输出（Adobe RGB TIFF），与 A6300 属于同一批拍摄。
+目标是 X1D 的 Phocus 输出（Adobe RGB TIFF），与 A6300 属于同一批拍摄。Phocus 导出时白平衡用吸管点色卡灰块，色卡灰阶的 a*、b* 在 ±0.6 以内。
 
 1. **初始拟合**（`hbfit.py`、`hbbuild.py`）：A6300 基础颜色 → X1D 输出。用灰阶拟合色调曲线，用色卡拟合 LookTable（核回归）。BaselineExposureOffset +0.338，使 A6300 进入 LookTable 时的亮度对应 K=0.66。
 2. **整张图修正**（`align.py`、`warp.py`、`dense_sample.py`、`dense_correct.py`）：
@@ -62,13 +62,13 @@
    - 预设 “Hasselblad X1D Nature” 的白平衡跟随拍摄设置；“Hasselblad X1D Nature 5500K” 另用 RGB 点曲线模拟上述偏色。
 5. **暖光**（`lowlight_sample.py`、`warm_matrix.py`）：用 dpreview 低光样张（约 2550K，A6300 RAW 与 X1D Phocus 输出，构图与日光组相同，沿用日光组的对齐）。
    - 只修改 StdA（2856K）端的 ForwardMatrix：FM1′ = C·FM1。C 的 6 个非对角项是自由参数，对角项由"D50 白点不变"确定，所以中性灰保持中性。
-   - 目标：色卡和棋盘格训练块的 ΔE2000 最小，曝光按 N5 对齐。肤色色相的块做约束，误差变大就罚分。另加正则 15·|C−I|²。
+   - 目标：色卡和棋盘格训练块的 ΔE2000 最小，曝光按 N5 对齐。肤色色相的块做约束，误差变大就罚分。另加正则 8·|C−I|²。
    - D65 端精确补偿：FM2′ = FM2 + w/(1−w)·(FM1 − FM1′)，w 为日光照片的 StdA 权重（0.04），所以日光下插值后的矩阵完全不变。
    - Standard 和 Nature 共用这组矩阵。
 
-Standard 的检验结果（ΔE2000 均值）：色卡 0.83，右半边彩色 1.77，右半边中性色 1.85，色轮区域的密集取样 1.80，原 48 点色轮 4.76。
+Standard 的检验结果（ΔE2000 均值）：色卡 0.72，右半边彩色 1.61，右半边中性色 1.38，色轮区域的密集取样 1.49，原 48 点色轮 4.72。
 
-暖光（约 2550K）：色卡 4.25，色卡肤色块 2.85，场景肤色检验块 6.44，色轮区域 2.87，灰阶 0.61。
+暖光（约 2550K）：色卡 4.07，色卡肤色块 2.76，场景肤色检验块 6.30，色轮区域 2.72，灰阶 0.57。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 

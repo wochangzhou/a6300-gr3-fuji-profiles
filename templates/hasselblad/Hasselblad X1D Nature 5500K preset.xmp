@@ -46,9 +46,9 @@
      <rdf:li>0, 0</rdf:li>
      <rdf:li>35, 32</rdf:li>
      <rdf:li>71, 67</rdf:li>
-     <rdf:li>117, 111</rdf:li>
-     <rdf:li>164, 156</rdf:li>
-     <rdf:li>203, 196</rdf:li>
+     <rdf:li>118, 111</rdf:li>
+     <rdf:li>165, 156</rdf:li>
+     <rdf:li>204, 196</rdf:li>
      <rdf:li>232, 226</rdf:li>
      <rdf:li>255, 255</rdf:li>
     </rdf:Seq>
@@ -59,7 +59,7 @@
      <rdf:li>35, 36</rdf:li>
      <rdf:li>72, 74</rdf:li>
      <rdf:li>118, 121</rdf:li>
-     <rdf:li>166, 169</rdf:li>
+     <rdf:li>165, 169</rdf:li>
      <rdf:li>204, 207</rdf:li>
      <rdf:li>232, 235</rdf:li>
      <rdf:li>255, 255</rdf:li>
@@ -68,12 +68,12 @@
    <crs:ToneCurvePV2012Blue>
     <rdf:Seq>
      <rdf:li>0, 0</rdf:li>
-     <rdf:li>36, 42</rdf:li>
-     <rdf:li>74, 85</rdf:li>
-     <rdf:li>119, 132</rdf:li>
-     <rdf:li>167, 182</rdf:li>
-     <rdf:li>205, 219</rdf:li>
-     <rdf:li>233, 243</rdf:li>
+     <rdf:li>35, 42</rdf:li>
+     <rdf:li>73, 85</rdf:li>
+     <rdf:li>118, 132</rdf:li>
+     <rdf:li>165, 182</rdf:li>
+     <rdf:li>204, 219</rdf:li>
+     <rdf:li>232, 243</rdf:li>
      <rdf:li>255, 255</rdf:li>
     </rdf:Seq>
    </crs:ToneCurvePV2012Blue>
