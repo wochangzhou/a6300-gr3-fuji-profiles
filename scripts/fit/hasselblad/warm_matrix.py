@@ -89,7 +89,7 @@ def loss(q):
     a=np.r_[de(od[idx_tr],Ld.tgt[idx_tr]),np.repeat(de(oc[cc],cTl[cc]),40)].mean()
     sk=de(od[sk_i],Ld.tgt[sk_i]).mean(); pen=20*max(0,sk-skin0)**2
     return a+pen+LAM*float(np.sum((Cmat(q)-np.eye(3))**2))
-import os; LAM=float(os.environ['LAM']); Lc_wd=Dc.w; skin0=de(Ld.out(FM1,FM2,g)[sk_i],Ld.tgt[sk_i]).mean()
+import os; LAM=float(os.environ.get('LAM','15')); Lc_wd=Dc.w; skin0=de(Ld.out(FM1,FM2,g)[sk_i],Ld.tgt[sk_i]).mean()
 x=np.zeros(6); st=np.full(6,0.05); b=loss(x); print("start loss %.3f, skin(train) %.2f"%(b,skin0))
 for it in range(300):
     imp=False
