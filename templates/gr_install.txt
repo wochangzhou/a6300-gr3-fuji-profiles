@@ -1,4 +1,4 @@
-理光 {MODEL} 风格（Adobe 的 {MODEL} Camera Matching 风格移植到 Sony A6300）
+理光 {MODEL} 风格（Adobe 的 {MODEL} Camera Matching 风格移植到 Sony A6300，并在 Adobe Standard 下按 dpreview 色卡做色相/饱和度对齐，明度不变）
 
 安装（macOS）：
 1. 把 CameraProfiles 里的 7 个 .dcp 复制到

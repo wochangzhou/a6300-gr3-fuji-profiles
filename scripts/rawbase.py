@@ -33,7 +33,7 @@ def base_fn(t):
         return f,T,w
     return setup
 P=json.load(open(PATCHES))
-PROF={"a6300":"Sony ILCE-6300"}
+PROF={"a6300":"Sony ILCE-6300","gr3":"RICOH GR III","gr4":"RICOH GR IV"}
 out={}; extra_out={}
 EX=json.load(open(EXTRA[0])) if EXTRA else None
 for cam,pat in P.items():

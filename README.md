@@ -2,7 +2,7 @@
 
 为 **Sony A6300（ILCE-6300）** 生成 Lightroom Classic / Camera Raw 配置文件：
 
-- **A6300 理光模拟**：把 Adobe 为 RICOH GR III 和 GR IV 做的机内风格模拟（Camera Matching：Standard、Positive Film、Negative Film、Vivid、三种 Monotone）移植到 A6300。
+- **A6300 理光模拟**：把 Adobe 为 RICOH GR III 和 GR IV 做的机内风格模拟（Camera Matching：Standard、Positive Film、Negative Film、Vivid、三种 Monotone）移植到 A6300，并在 Adobe Standard 下按 dpreview 影棚 RAW 色卡做色相/饱和度对齐。
 - **A6300 富士模拟**：直接使用 [TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation](https://github.com/TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation) 的 A6300 底片和富士 LUT（上游原版），只改分组名。
 - **A6300 哈苏模拟**：Hasselblad X1D 的 Phocus Standard、Nature 风格，X2D 的 Phocus Standard 和 Nature。用哈苏相机自己的“Adobe Standard → Phocus”同机配对，把差异迁移到 A6300 的 Adobe Standard 上。
 
@@ -27,19 +27,24 @@
 
 `scripts/port.py` 按 DNG SDK 参考实现（`dng_reference.cpp` 的 `RefBaselineHueSatMap`）实现 HSV 查表：三线性插值、色相环绕、sRGB 编码的明度轴，以及单明度层表的特殊路径（不编码输入、仍解码输出），所以所有 LookTable 都用 90×16×16 的 3D 表。检查脚本另外实现了 SDK 的保色相 RGB 色调曲线。
 
-## 原则：只迁移同一台相机上的“Adobe Standard → 目标风格”差值
+## 原则：风格差值只在同一台相机上计算
 
-dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版本和曝光都不一样（例如 2016 年那批的 A6300 和 X1D 比后来的 GR III、X-S10 那批亮，GR IV 那批换成了 Calibrite 色卡）。拿 A6300 的样张和别的机型的样张直接对齐，学到的差别里会混进批次差异，所以本项目**不做跨机型的样张对齐**。每个风格都只在目标相机自己身上计算“Adobe Standard → 风格”的差值，再接到 A6300 自己的 Adobe Standard 上：
+dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版本和曝光都不一样（例如 2016 年那批的 A6300 和 X1D 比后来的 GR III、X-S10 那批亮，GR IV 那批换成了 Calibrite 色卡）。所以“Adobe Standard → 风格”的差值只在目标相机自己身上计算，再接到 A6300 自己的 Adobe Standard 上：
 
 - 理光：差值由 Adobe 的 GR DCP 逐节点精确计算，不用照片。
 - 富士：用上游原版。
 - 哈苏：Phocus 是黑箱，用同一张哈苏 RAW 的 Adobe Standard 导出和 Phocus 导出配对来学差值。
 
-这样做假设 Adobe Standard 已经把各台相机校准到相近的颜色；两块传感器之间的同色异谱差异不在修正范围内。
+理光另外做一层**跨机色卡对齐**，处理 A6300 和 GR 的 Adobe Standard 对同一张色卡给出的颜色差别。这一层只修色相和饱和度，**不修明度**：批次之间的曝光和布光差异主要表现在明度上，修进去会让彩色普遍变暗。色相和饱和度里同样可能混有批次差异，这是实拍对比后的取舍。
 
-## 理光 GR III / GR IV（`scripts/port.py`）
+## 理光 GR III / GR IV
 
-以 GR 自己的 Adobe Standard 基础颜色（ForwardMatrix + HueSatMap，D65 端点）为中间空间。对新 LookTable 的每个节点，迭代反解对应的 GR 相机 RGB（不截断负值），用 Adobe 的 GR 风格渲染，再把结果写成相对节点的色相/饱和度/明度偏移。节点输入是已乘曝光的基础颜色。新表接到 A6300 的矩阵和 HueSatMap 上，色调曲线、曝光偏移（GR III +0.55，GR IV +0.5）和 DefaultBlackRender 沿用 GR 原版。`port.py` 的最后一个参数选机型（`"GR III"` 或 `"GR IV"`），并用 3000 个随机颜色检查移植误差（sRGB 编码下最大约 0.07–0.16，主要在高饱和边缘）。
+1. **风格移植**（`scripts/port.py`）：以 GR 自己的 Adobe Standard 基础颜色（ForwardMatrix + HueSatMap，D65 端点）为中间空间。对新 LookTable 的每个节点，迭代反解对应的 GR 相机 RGB（不截断负值），用 Adobe 的 GR 风格渲染，再把结果写成相对节点的色相/饱和度/明度偏移。节点输入是已乘曝光的基础颜色。新表接到 A6300 的矩阵和 HueSatMap 上，色调曲线、曝光偏移（GR III +0.55，GR IV +0.5）和 DefaultBlackRender 沿用 GR 原版。最后一个参数选机型（`"GR III"` 或 `"GR IV"`）；用 3000 个随机颜色检查移植误差（sRGB 编码下最大约 0.07–0.16，主要在高饱和边缘）。
+2. **RAW 测量**：`scripts/raw/decode.py`（rawpy/LibRaw）只做去马赛克，得到线性相机 RGB。`scripts/raw/extract.py` 取 24 色卡每块中心 60×60 像素的均值；`scripts/raw/wheel.py` 在色轮的 12 个扇区 × 4 圈取 48 个点，作为**独立验证集**。结果在 `data/raw/`（A6300、GR III、GR IV）。
+3. **基础颜色**（`scripts/rawbase.py`）：用灰块求相机中性点，按 DNG SDK 的方式迭代估计色温，在两组标定之间插值，再经各自的 Adobe Standard ForwardMatrix → ProPhoto → HueSatMap 得到基础颜色。曝光在 HueSatMap 之前按白块归一化。
+4. **跨机对齐**（`scripts/rawfit.py`、`scripts/gr/rawmatch.py`）：A6300 → GR 的色相差、饱和度比分别用（色相 × 饱和度）核回归建模，核宽和收缩强度用色卡留一法选择；近中性色（饱和度 <0.15）逐渐不修。每个 LookTable 节点先按模型把 A6300 基础颜色的色相和饱和度转到 GR 的位置，再查移植后的 GR 风格表。明度比也会拟合并报告，但不应用。
+
+色卡留一法 / 色轮（独立）结果（`rawfit.py` 输出，色相单位为度，饱和度为对数比）：GR III 色相 2.17 → 1.64 / 3.82 → 3.07，饱和度 0.041 → 0.019 / 0.151 → 0.127；GR IV 色相 3.46 → 2.59 / 4.39 → 3.77，饱和度 0.058 → 0.052 / 0.185 → 0.162。
 
 ## 富士底片
 
@@ -97,7 +102,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 
 ## 局限
 
-- 只迁移“Adobe Standard → 风格”的差值，不模拟目标相机传感器本身的色彩特性（同色异谱）。Adobe Standard 对两台相机校准得越接近，结果越接近目标相机。
+- 风格差值不包含目标相机传感器本身的色彩特性（同色异谱）。理光的色卡对齐只用 18 个彩色块，而且两台相机的样张来自不同批次，修正里会混有批次差异。
 - 哈苏的配对只在 dpreview 影棚日光一个光源下做；X2D Nature 是由 X1D 的 Nature 差别推算的，没有 X2D 样张验证。
 - 哈苏的验证集来自同一张照片和同一光源，只能说明对“别的颜色”能推广，不能说明对“别的光源”能推广。
 - Positive Film 等高饱和风格会把阳光下的饱和红推出 sRGB 色域，这是 Adobe 的 GR 风格本身的特性。
@@ -108,13 +113,15 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 build.sh                  一键生成（纯 python3）
 scripts/dcp.py            DCP（TIFF/IIRC）读取
 scripts/port.py           DNG 查表实现 + GR III / GR IV 风格移植 + DCP 写出
+scripts/rawfit.py         A6300 → GR 色相/饱和度修正拟合 + 色轮独立测试
+scripts/gr/rawmatch.py    生成对齐后的 GR III / GR IV 配置文件
 scripts/groups.py         分组 XMP（含点曲线复位）
 scripts/assemble.py       哈苏：本项目的表 + 本机的 A6300 Adobe Standard → DCP
 scripts/export_tables.py  从拟合好的 DCP 导出本项目自己的标签到 data/
-scripts/rawbase.py        相机 RGB → Adobe Standard 基础颜色（哈苏取样用）
-scripts/raw/              RAW 解码与 A6300 色卡取样（需要 rawpy、numpy）
+scripts/rawbase.py        相机 RGB → 各机 Adobe Standard 基础颜色
+scripts/raw/              RAW 解码与色卡、色轮取样（需要 rawpy、numpy）
 scripts/fit/              哈苏拟合与检查脚本（需要 numpy、rawpy、tifffile 和 dpreview 原图；构建时不运行）
-data/raw/                 A6300 色卡的线性相机 RGB 均值（哈苏取样的白平衡）
+data/raw/                 A6300、GR III、GR IV 色卡与色轮的线性相机 RGB 均值
 data/profiles.json, data/tables/  哈苏 X1D、X2D 的 Standard/Nature（LookTable、色调曲线、曝光偏移、名称）
 data/hasselblad/          同批 X1D Phocus 色卡/色轮测量（只作对照）、A6300↔X1D 取样网格的对齐检查图
 templates/                安装说明和哈苏预设
