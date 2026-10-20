@@ -57,7 +57,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 - **Standard**：目标是 Lightroom 里哈苏的 **Camera Standard**（Adobe 按 Phocus 渲染做的 Camera Matching 配置文件）。同一个 RAW 在 Lightroom 里导出两次，只换配置文件（Adobe Standard / Camera Standard），白平衡、曝光、镜头校正完全相同，ProPhoto 16 位 TIFF。
 - **Nature**：Lightroom 没有对应的 Camera 配置文件，只能用 Phocus：Phocus Nature 导出（Adobe RGB 16 位 TIFF）与 N5 对齐的 Lightroom Adobe Standard 导出配对。
 
-渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset +0.085 → LookTable（90×16×16，同机配对拟合）→ Phocus 色调曲线（Standard / Nature）。
+渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard +0.30，Nature +0.085）→ LookTable（90×16×16，同机配对拟合）→ Phocus 色调曲线（Standard / Nature）。
 
 ### Standard（`paired/pairs_lr.py`）
 
@@ -65,7 +65,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 2. **A6300 取样**（`align.py`、`warp.py`、`dense_sample.py`）：在 A6300 的 dpreview 日光 RAW 上取约 7 万个 6×6 平整格的基础颜色（白平衡 → ForwardMatrix → HueSatMap），两个色轮不参与训练。同批（2016 年）X1D 的 Phocus 输出对齐到同一网格，只作对照，不参与拟合。
 3. **迁移到 A6300**（`synth.py`，第 8 个参数 `lr`）：把配对差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
 4. **颜色表**（`pure_correct.py`）：LookTable 从恒等表开始，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 15°、×0.78–1.23、×0.96–1.04）。
-5. **曝光**：同一个 RAW，Phocus 比 Lightroom 的 Adobe Standard 暗约 0.2 EV（X1D、X2D 相同），BaselineExposureOffset +0.085 保持这个关系，Standard 和 Nature 共用。
+5. **曝光**：同一个 RAW，Camera Standard 与 Adobe Standard 的灰阶亮度相同，所以 A6300 上 Standard 的中灰也对齐到 Adobe Standard：+0.085 时实测 A6300 中灰 L* 47.1，Adobe Standard 为 51.4，按 Phocus 色调曲线反算需再加 0.216 EV，BaselineExposureOffset 定为 +0.30。Nature 的目标是 Phocus（同一 RAW 比 Adobe Standard 暗约 0.2 EV），保持 +0.085。
 
 对各自合成目标的检验结果（ΔE2000 均值；“起点”为恒等 LookTable）：
 
