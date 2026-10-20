@@ -19,5 +19,8 @@ for pid,spec in json.load(open(f"{DATA}/profiles.json")).items():
     ref=read(REFS[spec["ref"]]); tags={k:(v[0],v[1],v[3]) for k,v in ref.items()}
     for k,(typ,cnt,val) in spec["own"].items():
         raw=open(f"{DATA}/{val['file']}",'rb').read() if isinstance(val,dict) else bytes.fromhex(val)
+        if isinstance(val,dict) and val.get("add_to_reference"):   # float32 offset on top of the reference table (HueSatMap stays Adobe's)
+            r=ref[int(k)][3]; n=len(r)//4; assert len(raw)==len(r)
+            raw=struct.pack(f'<{n}f',*(a+b for a,b in zip(struct.unpack(f'<{n}f',r),struct.unpack(f'<{n}f',raw))))
         tags[int(k)]=(typ,cnt,raw)
     write(f"{OUT}/{spec['out']}",tags); print("assembled",spec["out"])

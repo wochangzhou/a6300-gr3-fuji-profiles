@@ -1,10 +1,10 @@
-# A6300 理光 GR III / 富士胶片模拟 / 哈苏 X1D Lightroom 配置文件
+# A6300 理光 GR III / 富士胶片模拟 / 哈苏 X1D·X2D Lightroom 配置文件
 
 为 **Sony A6300（ILCE-6300）** 生成 Lightroom Classic / Camera Raw 配置文件：
 
 - **A6300 理光模拟**：把 Adobe 为 RICOH GR III 做的机内风格模拟（Camera Matching：Standard、Positive Film、Negative Film、Vivid、三种 Monotone）移植到 A6300，并用 dpreview 影棚 RAW 做跨机色彩对齐。
 - **A6300 富士模拟**：使用 [TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation](https://github.com/TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation) 的富士 LUT。A6300 底片在上游版本上加一张颜色表，按 X-S10 + Adobe Camera PROVIA 的 Lightroom 实际输出校准。
-- **A6300 哈苏模拟**：Hasselblad X1D 的 Phocus Standard 和 Nature 风格，按 dpreview 同一批拍摄的 A6300 RAW 和 X1D Phocus 输出拟合。
+- **A6300 哈苏模拟**：Hasselblad X1D 的 Phocus Standard、Nature 风格，X2D 的 Phocus Standard 和 Nature。用哈苏相机自己的“Adobe Standard → Phocus”同机配对（日光和暖光各一组），把差异迁移到 A6300 的 Adobe Standard 上。
 
 定位：这是**基于 Adobe 配置文件的风格移植**，不是对理光、富士或哈苏机内色彩的复刻。仓库只包含生成流程、测量数据、本项目拟合的表和文档；配置文件由 `build.sh` 用你本机的 Lightroom 和上游仓库生成（见“版权说明”）。
 
@@ -46,29 +46,52 @@
 
 结果（Lightroom 实际导出，不计亮度的 ΔE2000）：色卡 0.92，色轮（独立）1.99。
 
-## 哈苏 X1D（`scripts/fit/hasselblad/`）
+## 哈苏 X1D / X2D（`scripts/fit/hasselblad/`）
 
-目标是 X1D 的 Phocus 输出（Adobe RGB TIFF），与 A6300 属于同一批拍摄。Phocus 导出时白平衡用吸管点色卡灰块，色卡灰阶的 a*、b* 在 ±0.6 以内。
+目标是哈苏的 Phocus 输出（Adobe RGB TIFF）。Phocus 导出时白平衡用吸管点色卡灰块，色卡灰阶的 a*、b* 在 ±0.6 以内。
 
-1. **初始拟合**（`hbfit.py`、`hbbuild.py`）：A6300 基础颜色 → X1D 输出。用灰阶拟合色调曲线，用色卡拟合 LookTable（核回归）。BaselineExposureOffset +0.338，使 A6300 进入 LookTable 时的亮度对应 K=0.66。
-2. **整张图修正**（`align.py`、`warp.py`、`dense_sample.py`、`dense_correct.py`）：
-   - 对齐：先做仿射，再按 64px 块做相关匹配，最后拟合三次多项式形变。中位残差约 1.6 px，见 `data/hasselblad/align_check.png`。
-   - 取样：约 7 万个平整色块；左半边用于拟合，右半边和两个色轮用于检验。
-   - 修正：叠加到 LookTable 上，幅度有上限：色相 ±10°，饱和度 ×0.8–1.2，明度 ×0.93–1.05。
-3. **高饱和区淡出**（`satfade.py`）：饱和度高于所有校准样本的区域（HSV s 0.74→0.92），LookTable 的色相和饱和度修正逐渐收回到不处理，不在没有数据的地方外推。
-4. **Nature**（`nature_measure.py`、`nature_build.py`）：
-   - 测量 Nature 相对 Standard 的差别：Phocus 把白平衡固定在 5500K、色调 +10，造成灰阶整体偏青蓝；此外红、橙、肤色往品红方向转约 10°。
-   - 颜色差异叠加到 Standard 的 LookTable 和色调曲线上，高饱和区按 0.74→0.85 淡出。
-   - 预设 “Hasselblad X1D Nature” 的白平衡跟随拍摄设置；“Hasselblad X1D Nature 5500K” 另用 RGB 点曲线模拟上述偏色。
-5. **暖光**（`lowlight_sample.py`、`warm_matrix.py`）：用 dpreview 低光样张（约 2550K，A6300 RAW 与 X1D Phocus 输出，构图与日光组相同，沿用日光组的对齐）。
-   - 只修改 StdA（2856K）端的 ForwardMatrix：FM1′ = C·FM1。C 的 6 个非对角项是自由参数，对角项由"D50 白点不变"确定，所以中性灰保持中性。
-   - 目标：色卡和棋盘格训练块的 ΔE2000 最小，曝光按 N5 对齐。肤色色相的块做约束，误差变大就罚分。另加正则 8·|C−I|²。
-   - D65 端精确补偿：FM2′ = FM2 + w/(1−w)·(FM1 − FM1′)，w 为日光照片的 StdA 权重（0.04），所以日光下插值后的矩阵完全不变。
-   - Standard 和 Nature 共用这组矩阵。
+### 流程：同机配对（`paired/`）
 
-Standard 的检验结果（ΔE2000 均值）：色卡 0.72，右半边彩色 1.61，右半边中性色 1.38，色轮区域的密集取样 1.49，原 48 点色轮 4.72。
+每台哈苏只和自己比：同一个 RAW 在 Lightroom 里用 Adobe Standard 导出（中灰 N5 对齐到 Phocus 输出的 L*，白平衡点 N5），与 Phocus 输出逐像素配对。两边是同一帧、同一张色卡、同一种光，差异只来自“Adobe Standard → Phocus”的渲染。再把这个差异迁移到 A6300 自己的 Adobe Standard 上。A6300 的颜色不和任何哈苏照片直接拟合。
 
-暖光（约 2550K）：色卡 4.07，色卡肤色块 2.76，场景肤色检验块 6.30，色轮区域 2.72，灰阶 0.57。
+渲染顺序：白平衡 → ForwardMatrix（D65 端 = Adobe 原版，StdA 端 = 拟合的 3×3）→ Adobe Standard HueSatMap（StdA 端加红色/肤色色相偏移）→ BaselineExposureOffset +0.085 → LookTable（90×16×16，同机配对拟合）→ Phocus 色调曲线。
+
+1. **配对**（`pairs.py`）：两张图对齐（残余位移 ≤8 px，按块校正），取约 4–8 万个平整格。Phocus 比 Adobe Standard 更浓（X1D C* +6～+20，X2D +2～+12），高光更亮（L*>70 时约 +4）。曝光必须在导出时就按 N5 对齐，事后补增益的配对效果更差。
+2. **中性轴对齐**（`grey_axis_match.py`）：配对里的近中性格（Adobe Standard C*<3）上，Phocus 与 Adobe Standard 还有一点随亮度变化的偏色（X2D 偏暖 Δb 约 +0.3～+1.3，X1D 偏冷 −0.4～−1.4，方向相反，说明主要来自两边白平衡设置）。按 L* 每 5 一段求各通道的对数比，跨亮度平滑（σ 8 L*），只改色度、不改亮度，使灰阶两边一致。之后各亮度段残差在 ±0.4 以内，彩色的 C* 基本不变。Nature 先用 `neutralise.py` 去掉 5500K 固定白平衡的大偏色（偏色由 5500K 预设负责），再做这一步；直接对原始 Nature 配对做会把 C* 压低约 2，不采用。
+3. **A6300 取样**（`../align.py`、`../warp.py`、`../dense_sample.py`；暖光用 `../lowlight_sample.py`）：在 A6300 的 dpreview 日光 RAW 上取约 7 万个 6×6 平整格的基础颜色（白平衡 → ForwardMatrix → HueSatMap），两个色轮不参与训练。同批 X1D 的 Phocus 输出对齐到同一网格，只用于对照和验证，不参与拟合。
+4. **迁移到 A6300**（`synth.py`）：把配对得到的差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出（N5 同样对齐）上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
+5. **验证**（`validate.py`）：只用 X1D 的配对学 g，完全不用 A6300 数据拟合，再和 X1D 的 Phocus 输出比（6.5 万个格子，ΔE2000）：彩色 4.11 → 2.24（右半边 4.17 → 2.33），中性 1.72 → 1.20，色轮区域 2.24 → 1.17。暖光（约 2550K）彩色 5.19 → 3.67。
+6. **日光颜色表**（`pure_correct.py`）：LookTable 从恒等表开始，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 14°、×0.63–1.42、×0.93–1.08）。
+7. **暖光矩阵**（`../warm_matrix.py`）：用低光样张（约 2550K）的合成目标，只修改 StdA（2856K）端的 ForwardMatrix：FM1′ = C·FM1。C 的对角项由“D50 白点不变”确定，中性灰保持中性；肤色做约束，另加正则 2·|C−I|²。D65 端精确补偿 FM2′ = FM2 + w/(1−w)·(FM1 − FM1′)（w 为日光照片的 StdA 权重 0.04），日光下插值后的矩阵完全不变。Nature 与同机型的 Standard 共用。
+8. **暖光红色/肤色色相**（`warm_red_hue.py`）：矩阵之后，暖光下红色和肤色仍往品红偏（X1D 红 −8°、肤色 −7°；X2D −5°、−9°），3×3 矩阵无法只修这一段。只在 StdA 端的 HueSatMap 上加一个平滑的色相偏移：HueSatMap 输入色相 348°–8° 全量、两侧各 12° 余弦过渡（336°–20° 以外为零），低饱和处（s<0.12）渐弱到零；只改色相，D65 端同样精确补偿。幅度按数据定：X1D +4.75°，X2D +4.25°。低光色卡其余色块和灰阶不变，日光完全不变。仓库只保存相对 Adobe Standard HueSatMap 的偏移量（`*_hue_offset.bin`），构建时叠加。
+9. **曝光**：同一个 RAW，Phocus 比 Lightroom 的 Adobe Standard 暗约 0.2 EV（X1D、X2D 相同），A6300 套用时保持这个关系：BaselineExposureOffset +0.085。
+10. **Nature**：X1D Nature 用同样的流程（配对 x1d_nature.tif 与 Adobe Standard 导出，色调曲线用 Phocus Nature 的）。X2D 没有 Phocus Nature 样张，用 `transfer_nature.py` 把 X1D Nature 相对 X1D Standard 的差别（LookTable 每个节点的色相偏移、饱和度和明度比例，以及 Nature 色调曲线）套到 X2D Standard 上，没有经过 X2D 样张验证。
+
+对各自合成目标的检验结果（ΔE2000 均值；“起点”为恒等 LookTable）：
+
+| 配置文件 | 检验彩色 | 中性 | 色轮区域（未训练） |
+|---|---|---|---|
+| X1D Standard | 1.44 → 0.83 | 1.09 → 1.06 | 1.35 → 1.10 |
+| X1D Nature | 1.31 → 0.85 | 1.12 → 1.08 | 1.21 → 1.03 |
+| X2D Standard | 1.40 → 0.85 | 1.11 → 1.06 | 1.14 → 1.02 |
+
+暖光（低光合成目标，色卡彩色均值）：X1D 2.72 → 2.53，X2D 2.59 → 2.51；红色色块 X1D 4.69 → 1.46，X2D 3.06 → 1.84。
+
+注意：中性轴对齐后，X1D 的合成目标离真实 X1D Phocus 反而远了（彩色 1.44 → 2.03，灰阶 b 约 −1）：X1D 配对里那点偏冷可能本来就是 Phocus 的样子。实拍对比后仍选用对齐后的版本。
+
+### 复现步骤
+
+需要：哈苏 RAW 的 Phocus 导出（Adobe RGB 16 位 TIFF）和同一 RAW 的 Lightroom Adobe Standard 导出（ProPhoto 16 位 TIFF，N5 对齐，白平衡点 N5），A6300 的 dpreview 日光/低光 RAW 及其 Adobe Standard 导出，都转成 `.npy`。脚本在 `scripts/fit/hasselblad/`，参数见各文件开头。
+
+1. `paired/pairs.py`：每组（X1D 日光、X1D 低光、X1D Nature、X2D 日光、X2D 低光）生成配对格。Nature 再跑 `paired/neutralise.py`。
+2. `paired/grey_axis_match.py`：日光配对（含 Nature）做中性轴对齐。
+3. `align.py` → `warp.py` → `dense_sample.py`：A6300 日光格（`samples6.npz`）；`lowlight_sample.py`：低光格。
+4. `paired/synth.py`：每组配对 + A6300 导出 → 合成目标（日光 `samples6.npz`，低光 `d/samples_low.npz`、`cT_low.npy`）。可先跑 `paired/validate.py` 检查迁移。
+5. `paired/pure_correct.py`：从当前配置文件（取其矩阵、HueSatMap、色调曲线）出发，恒等 LookTable + 拟合 → 日光 LookTable。Nature 用 Nature 色调曲线的配置文件出发。
+6. `warm_matrix.py`：低光合成目标 → StdA 端 ForwardMatrix（λ=2）。
+7. `paired/warm_red_hue.py`：StdA 端 HueSatMap 红色/肤色色相偏移。
+8. `paired/transfer_nature.py`：X1D Nature 差别 → X2D Nature。
+9. 把结果 DCP 的标签写进 `data/profiles.json` 和 `data/tables/`（HueSatMap 存相对 Adobe 的偏移，`add_to_reference`），`build.sh` 重建后应与拟合出的 DCP 一致。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 
@@ -82,6 +105,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 ## 局限
 
 - 理光和富士只用影棚日光（约 D65 端点）校准。哈苏另有暖光（约 2550K）一个测量点，中间色温靠 Lightroom 插值。低色温 LED、荧光灯等光谱不连续的光源都没有验证。
+- 哈苏的同机配对修正假设 Adobe 给哈苏和 A6300 做的 Adobe Standard 都足够准，同一场景颜色得到相近的输出；两台相机传感器的同色异谱不在修正范围内，暖光下 A6300 的彩色仍偏亮约 3 L*。X2D Nature 是由 X1D 的 Nature 差别推算的，没有 X2D 样张验证。暖光红色/肤色的色相修正只在约 2550K 一个点上拟合。
 - 各机型使用不同镜头，镜头的色差和眩光会混入测量。
 - 验证集来自同一张照片和同一光源，只能说明对“别的颜色”能推广，不能说明对“别的光源”能推广。
 - 富士底片的颜色表只用 Provia 验证过，但会影响全部风格。
@@ -103,14 +127,14 @@ scripts/export_tables.py  从拟合好的 DCP 导出本项目自己的标签到 
 scripts/fit/              拟合与检查脚本（需要 numpy、rawpy、tifffile 和 dpreview 原图；构建时不运行）
 scripts/raw/              RAW 解码与取样（需要 rawpy、numpy）
 data/raw/                 色卡与色轮的线性相机 RGB 均值
-data/profiles.json, data/tables/  哈苏 Standard/Nature（暖光端 ForwardMatrix、LookTable、色调曲线、曝光偏移）、富士底片的 LookTable
-data/hasselblad/          X1D Phocus 色卡/色轮测量、Nature 测量、对齐检查图
+data/profiles.json, data/tables/  哈苏 X1D、X2D 的 Standard/Nature（暖光端 ForwardMatrix、相对 Adobe HueSatMap 的色相偏移、LookTable、色调曲线、曝光偏移）、富士底片的 LookTable
+data/hasselblad/          X1D Phocus 色卡/色轮测量（对照用）、A6300↔X1D 取样网格的对齐检查图
 templates/                安装说明和哈苏预设
 ```
 
 ## 版权说明
 
-- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的部分（LookTable、色调曲线、哈苏暖光端的 ForwardMatrix），其余矩阵和 HueSatMap 在构建时从本机读取。
+- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的部分（LookTable、色调曲线、哈苏暖光端的 ForwardMatrix、HueSatMap 的色相偏移量），其余矩阵和 HueSatMap 本身在构建时从本机读取。
 - 富士 LUT 来自 TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation 和 abpy/FujifilmCameraProfiles，两者均未声明许可证，构建时从上游克隆。
 - dpreview 的 RAW、Phocus 和 Lightroom 导出图不在仓库内，`data/` 只保存测量值。
 - 本仓库的脚本、数据和文档以 MIT 许可证发布。

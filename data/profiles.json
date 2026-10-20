@@ -30,6 +30,22 @@
     22,
     "48617373656c626c616420583144204e617475726500"
    ],
+   "50938": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_nature_50938_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50939": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_nature_50939_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
    "50940": [
     11,
     512,
@@ -39,7 +55,7 @@
    ],
    "50942": [
     2,
-    77,
+    133,
     {
      "file": "tables/hasselblad_nature_50942.bin"
     }
@@ -78,7 +94,7 @@
    "51109": [
     10,
     1,
-    "340d000010270000"
+    "5403000010270000"
    ],
    "51110": [
     4,
@@ -96,6 +112,22 @@
     24,
     "48617373656c626c616420583144205374616e6461726400"
    ],
+   "50938": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_standard_50938_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50939": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_standard_50939_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
    "50940": [
     11,
     512,
@@ -105,7 +137,7 @@
    ],
    "50942": [
     2,
-    79,
+    128,
     {
      "file": "tables/hasselblad_standard_50942.bin"
     }
@@ -144,7 +176,171 @@
    "51109": [
     10,
     1,
-    "340d000010270000"
+    "5403000010270000"
+   ],
+   "51110": [
+    4,
+    1,
+    "01000000"
+   ]
+  },
+  "ref": "adobe_standard"
+ },
+ "hasselblad_x2d_nature": {
+  "out": "Sony ILCE-6300 Hasselblad X2D Nature.dcp",
+  "own": {
+   "50936": [
+    2,
+    22,
+    "48617373656c626c616420583244204e617475726500"
+   ],
+   "50938": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_x2d_nature_50938_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50939": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_x2d_nature_50939_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50940": [
+    11,
+    512,
+    {
+     "file": "tables/hasselblad_x2d_nature_50940.bin"
+    }
+   ],
+   "50942": [
+    2,
+    105,
+    {
+     "file": "tables/hasselblad_x2d_nature_50942.bin"
+    }
+   ],
+   "50964": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_x2d_nature_50964.bin"
+    }
+   ],
+   "50965": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_x2d_nature_50965.bin"
+    }
+   ],
+   "50981": [
+    4,
+    3,
+    "5a0000001000000010000000"
+   ],
+   "50982": [
+    11,
+    69120,
+    {
+     "file": "tables/hasselblad_x2d_nature_50982.bin"
+    }
+   ],
+   "51108": [
+    4,
+    1,
+    "01000000"
+   ],
+   "51109": [
+    10,
+    1,
+    "5403000010270000"
+   ],
+   "51110": [
+    4,
+    1,
+    "01000000"
+   ]
+  },
+  "ref": "adobe_standard"
+ },
+ "hasselblad_x2d_standard": {
+  "out": "Sony ILCE-6300 Hasselblad X2D Standard.dcp",
+  "own": {
+   "50936": [
+    2,
+    24,
+    "48617373656c626c616420583244205374616e6461726400"
+   ],
+   "50938": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_x2d_standard_50938_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50939": [
+    11,
+    8100,
+    {
+     "file": "tables/hasselblad_x2d_standard_50939_hue_offset.bin",
+     "add_to_reference": true
+    }
+   ],
+   "50940": [
+    11,
+    512,
+    {
+     "file": "tables/hasselblad_x2d_standard_50940.bin"
+    }
+   ],
+   "50942": [
+    2,
+    128,
+    {
+     "file": "tables/hasselblad_x2d_standard_50942.bin"
+    }
+   ],
+   "50964": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_x2d_standard_50964.bin"
+    }
+   ],
+   "50965": [
+    10,
+    9,
+    {
+     "file": "tables/hasselblad_x2d_standard_50965.bin"
+    }
+   ],
+   "50981": [
+    4,
+    3,
+    "5a0000001000000010000000"
+   ],
+   "50982": [
+    11,
+    69120,
+    {
+     "file": "tables/hasselblad_x2d_standard_50982.bin"
+    }
+   ],
+   "51108": [
+    4,
+    1,
+    "01000000"
+   ],
+   "51109": [
+    10,
+    1,
+    "5403000010270000"
    ],
    "51110": [
     4,
