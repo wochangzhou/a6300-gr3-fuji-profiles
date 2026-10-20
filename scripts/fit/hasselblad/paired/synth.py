@@ -1,5 +1,6 @@
-# Synthetic HNCS targets for A6300 cells: target = g_X2D(A6300 Adobe Standard export), where g is learned from
-# same-camera X2D pairs (Adobe Standard -> Phocus). Writes sample files in the formats the existing fit scripts read.
+# Synthetic targets for A6300 cells: target = g(A6300 Adobe Standard export), where g is learned from same-camera
+# Hasselblad pairs (Adobe Standard -> Camera Standard with TENC 'lr', or -> Phocus Nature by default).
+# Writes sample files in the formats the fit scripts read.
 import sys, os, json, shutil, numpy as np
 W, PAIRS, LREXP, SAMPLES, OUTD, GAIN, KIND = sys.argv[1:8]; GAIN = float(GAIN)
 TENC = sys.argv[8] if len(sys.argv) > 8 else 'phocus'  # 'lr': pair targets are Lightroom ProPhoto exports (pairs_lr.py)

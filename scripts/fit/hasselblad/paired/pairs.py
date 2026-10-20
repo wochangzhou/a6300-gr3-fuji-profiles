@@ -1,4 +1,5 @@
-# Same-camera pairs: X2D Lightroom Adobe Standard export vs X2D Phocus Standard (same frame).
+# Same-camera pairs for Nature: Lightroom Adobe Standard export (N5 matched) vs Phocus Nature export (same frame).
+# Standard uses pairs_lr.py (Lightroom Adobe Standard vs Camera Standard) instead.
 import sys, math, numpy as np
 sys.path.insert(0, sys.argv[1]); from lab import *
 exec(open(sys.argv[2]).read())
