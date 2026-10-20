@@ -2,13 +2,14 @@
 # same-camera X2D pairs (Adobe Standard -> Phocus). Writes sample files in the formats the existing fit scripts read.
 import sys, os, json, shutil, numpy as np
 W, PAIRS, LREXP, SAMPLES, OUTD, GAIN, KIND = sys.argv[1:8]; GAIN = float(GAIN)
+TENC = sys.argv[8] if len(sys.argv) > 8 else 'phocus'  # 'lr': pair targets are Lightroom ProPhoto exports (pairs_lr.py)
 sys.path.insert(0, W); from lab import *
 PP2X = np.array([[0.7977,0.1352,0.0313],[0.2880,0.7119,0.0001],[0.0,0.0,0.8249]]); W50 = np.array([0.9642,1,0.8249])
 def lab2pp(L):
     fy = (L[:, 0]+16)/116; fx = fy+L[:, 1]/500; fz = fy-L[:, 2]/200
     inv = lambda f: np.where(f**3 > 216/24389, f**3, (116*f-16)/(24389/27))
     return (np.stack([inv(fx), inv(fy), inv(fz)], 1)*W50) @ np.linalg.inv(PP2X).T
-P = np.load(PAIRS); pa = lab_lr(P[:, 2:5]); d = lab_phocus(P[:, 5:8])-pa
+P = np.load(PAIRS); pa = lab_lr(P[:, 2:5]); d = (lab_lr(P[:, 5:8]) if TENC == 'lr' else lab_phocus(P[:, 5:8]))-pa
 k = np.stack([np.floor(pa[:, 0]/4), np.floor(pa[:, 1]/3), np.floor(pa[:, 2]/3)], 1)
 u, inv_ = np.unique(k, axis=0, return_inverse=True); inv_ = inv_.ravel()
 BC = np.array([np.median(pa[inv_ == j], 0) for j in range(len(u))]); BD = np.array([np.median(d[inv_ == j], 0) for j in range(len(u))])
