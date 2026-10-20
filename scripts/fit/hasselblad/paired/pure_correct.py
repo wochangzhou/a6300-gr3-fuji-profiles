@@ -5,7 +5,7 @@
 import sys,json,math,numpy as np
 O,GS,H,CUR,DE,NAME,NOTE=sys.argv[1:8]; CH,CS0,CS1,CV0,CV1=map(float,sys.argv[8:13]); sys.path.insert(0,GS); from dcp import read
 exec(open(DE).read())
-d=np.load(O+'/samples6.npz'); K=0.66
+d=np.load(O+'/samples6.npz'); K=float(__import__("os").environ.get("KMODEL","0.66"))  # model exposure; 0.5082 matches the A6300 Adobe Standard greys under the ACR3 curve
 base=d['base']; tgt=np.clip(d['tgt'],1e-6,None); tgt1=np.clip(d['tgt1'],1e-6,None); xy=d['xy']; wh=d['wheel']>0
 ok=base.max(1)<0.985; base,tgt,tgt1,xy,wh=base[ok],tgt[ok],tgt1[ok],xy[ok],wh[ok]
 X=K*base

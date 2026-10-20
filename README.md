@@ -57,40 +57,39 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 - **Standard**：目标是 Lightroom 里哈苏的 **Camera Standard**（Adobe 按 Phocus 渲染做的 Camera Matching 配置文件）。同一个 RAW 在 Lightroom 里导出两次，只换配置文件（Adobe Standard / Camera Standard），白平衡、曝光、镜头校正完全相同，ProPhoto 16 位 TIFF。
 - **Nature**：Lightroom 没有对应的 Camera 配置文件，只能用 Phocus：Phocus Nature 导出（Adobe RGB 16 位 TIFF）与 N5 对齐的 Lightroom Adobe Standard 导出配对。
 
-渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard +0.30，Nature +0.085）→ LookTable（90×16×16，同机配对拟合）→ Phocus 色调曲线（Standard / Nature）。
+渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard 0，Nature +0.11）→ LookTable（90×16×16，同机配对拟合）→ 色调曲线（Standard 为 Adobe Standard 所用的 ACR3 默认曲线，即 DNG SDK 的 `kAdobeDefaultCurve`；Nature 见下）。灰阶在两种配置文件下都与 Adobe Standard 一致。
 
 ### Standard（`paired/pairs_lr.py`）
 
 1. **配对**（`pairs_lr.py`）：两份 Lightroom 导出像素对齐，取 4–8 万个平整格。两边白平衡、曝光天然一致：中性格 ΔE 0.4–0.5，各亮度段灰阶 Δa、Δb 在 ±0.4 以内，ΔL* ≤0.3（Camera Standard 与 Adobe Standard 一样亮）；色卡 N5 的 a*、b* 在 ±0.13 以内。Camera Standard 比 Adobe Standard 更浓（X1D C* +3～+14，X2D +1～+10），蓝 180–240° 色相 −6～−10°。
 2. **A6300 取样**（`align.py`、`warp.py`、`dense_sample.py`）：在 A6300 的 dpreview 日光 RAW 上取约 7 万个 6×6 平整格的基础颜色（白平衡 → ForwardMatrix → HueSatMap），两个色轮不参与训练。同批（2016 年）X1D 的 Phocus 输出对齐到同一网格，只作对照，不参与拟合。
 3. **迁移到 A6300**（`synth.py`，第 8 个参数 `lr`）：把配对差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
-4. **颜色表**（`pure_correct.py`）：LookTable 从恒等表开始，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 15°、×0.78–1.23、×0.96–1.04）。
-5. **曝光**：同一个 RAW，Camera Standard 与 Adobe Standard 的灰阶亮度相同，所以 A6300 上 Standard 的中灰也对齐到 Adobe Standard：+0.085 时实测 A6300 中灰 L* 47.1，Adobe Standard 为 51.4，按 Phocus 色调曲线反算需再加 0.216 EV，BaselineExposureOffset 定为 +0.30。Nature 的目标是 Phocus（同一 RAW 比 Adobe Standard 暗约 0.2 EV），保持 +0.085。
+4. **颜色表**（`pure_correct.py`）：起点为 A6300 Adobe Standard 的矩阵和 HueSatMap、ACR3 色调曲线、曝光偏移 0、恒等 LookTable，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。模型曝光 `KMODEL=0.5082`：在这个值下 ACR3 曲线给出的 A6300 色卡灰阶与 Adobe Standard 导出一致（N8–N3.5 平均差 0.3 L*）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 15°、×0.82–1.29、×0.97–1.07）。LookTable 在中性色上不改明度。
+5. **曝光和色调**：同一个 RAW，Camera Standard 与 Adobe Standard 的灰阶在每一档亮度上都相同（配对 ΔL* ≤0.3），Lightroom 的 Camera Standard 与 Phocus 导出看起来也一样。所以 Standard 直接用 Adobe Standard 的色调曲线和曝光（偏移 0），灰阶与 Adobe Standard 完全相同。早先用 Phocus 拟合的色调曲线在中灰对齐后高光仍偏亮 2–4 L*，已不用。
 
 对各自合成目标的检验结果（ΔE2000 均值；“起点”为恒等 LookTable）：
 
 | 配置文件 | 检验彩色 | 中性 | 色轮区域（未训练） |
 |---|---|---|---|
-| X1D Standard | 1.20 → 0.91 | 1.46 → 1.43 | 1.17 → 1.19 |
-| X2D Standard | 1.23 → 0.93 | 1.49 → 1.45 | 1.19 → 1.21 |
+| X1D Standard | 1.13 → 1.00 | 1.16 → 1.15 | 1.13 → 1.07 |
+| X2D Standard | 1.15 → 1.03 | 1.21 → 1.18 | 1.10 → 1.07 |
 
 Camera Standard 的合成目标与同批真实 X1D Phocus 输出相比，彩色约 2.1、灰阶 b 约 −0.7（Phocus 略偏冷偏绿），即 Lightroom 的 Camera Standard 与 Phocus 并不完全相同。之前用 Phocus 配对的版本与现在相比，A6300 上全图平均只差 ΔE 0.5–0.6，高饱和色（C*>20）差 2–4；为了数据来源统一，Standard 只用 Lightroom。
 
-### Nature（Phocus 配对）
+### Nature（Phocus 配对，作为相对 Standard 的差别）
 
-1. **配对**（`pairs.py`）：Phocus Nature 导出与 Lightroom Adobe Standard 导出（曝光在导出时按 N5 对齐，白平衡点 N5）对齐（残余位移 ≤8 px，按块校正）。
-2. **去固定白平衡偏色**（`neutralise.py`）：去掉 Phocus Nature 5500K 固定白平衡的大偏色（偏色由 5500K 预设负责）。
-3. **中性轴对齐**（`grey_axis_match.py`）：近中性格（Adobe Standard C*<3）上按 L* 每 5 一段求各通道对数比，跨亮度平滑（σ 8 L*），只改色度、不改亮度。
-4. `synth.py`（默认 Phocus 目标）→ `pure_correct.py`（从 Nature 色调曲线的配置文件出发），同 Standard。X1D Nature：检验彩色 1.31 → 0.85，中性 1.12 → 1.08，色轮区域 1.21 → 1.03。
-5. **X2D Nature**（`transfer_nature.py`）：没有 X2D 的 Phocus Nature 样张，把 X1D Nature 相对 X1D Standard 的差别（LookTable 每个节点的色相偏移、饱和度和明度比例，以及 Nature 色调曲线）套到 X2D Standard 上。
+Lightroom 没有哈苏 Nature 的 Camera 配置文件，Nature 只能从 Phocus 学，而且只取它**相对 Standard 的差别**，叠到上面 Lightroom 版的 Standard 上。
+
+1. **X1D Nature 差别**（`pairs.py` → `neutralise.py` → `grey_axis_match.py` → `synth.py` → `pure_correct.py`）：Phocus Nature 导出与 N5 对齐的 Lightroom Adobe Standard 导出配对，去掉 5500K 固定白平衡的偏色（由 5500K 预设负责），近中性格按 L* 分段做中性轴对齐，再拟合出 X1D Nature。与同一时期用 Phocus Standard 配对拟合的 X1D Standard（同样的矩阵、HueSatMap 和 Phocus Standard 色调曲线）相比，得到 Nature 相对 Standard 的差别。检验结果：彩色 1.31 → 0.85，中性 1.12 → 1.08，色轮区域 1.21 → 1.03。
+2. **叠到 Standard 上**（`transfer_nature.py`，X1D、X2D 都用）：LookTable 每个节点套用这份差别（色相偏移、饱和度和明度比例）。色调差别经 Standard 曲线传递：新曲线 = ACR3(PhocusStandard⁻¹(PhocusNature(x)))。曝光偏移按中灰对齐 Adobe Standard 求得 +0.11，之后色卡六档灰与 Adobe Standard 相差 ≤0.4 L*。X2D 没有 Phocus Nature 样张，用的是 X1D 的差别。
 
 ### 复现步骤
 
 需要：哈苏 RAW 在 Lightroom 里的 Adobe Standard 和 Camera Standard 导出（只换配置文件）；X1D Nature 另需 Phocus Nature 导出和 N5 对齐的 Adobe Standard 导出；A6300 的 dpreview 日光 RAW 及其 Adobe Standard 导出（`.npy`）。脚本在 `scripts/fit/hasselblad/`，参数见各文件开头。
 
 1. `align.py` → `warp.py` → `dense_sample.py`：A6300 日光格（`samples6.npz`）。A6300 的白平衡用 `data/raw/patches_raw.json`（由 `scripts/raw/decode.py`、`extract.py` 测得）。
-2. Standard：`paired/pairs_lr.py`（X1D、X2D 各一组）→ `paired/synth.py … lr` → `paired/pure_correct.py`。
-3. Nature：`paired/pairs.py` → `paired/neutralise.py` → `paired/grey_axis_match.py` → `paired/synth.py` → `paired/pure_correct.py`；再 `paired/transfer_nature.py` 得 X2D Nature。
+2. Standard：`paired/pairs_lr.py`（X1D、X2D 各一组）→ `paired/synth.py … lr` → `KMODEL=0.5082 paired/pure_correct.py`（起点配置文件换成 ACR3 曲线、曝光偏移 0）。
+3. Nature：`paired/pairs.py` → `paired/neutralise.py` → `paired/grey_axis_match.py` → `paired/synth.py` → `paired/pure_correct.py`（Phocus Standard 曲线的配置文件出发）得到 X1D Nature 与对应的 X1D Standard；再 `paired/transfer_nature.py` 把差别叠到 Lightroom 版的 X1D、X2D Standard 上。
 4. 用 `scripts/export_tables.py` 把结果 DCP 里本项目自己的标签（LookTable、色调曲线、曝光偏移、名称）写进 `data/profiles.json` 和 `data/tables/`，`build.sh` 重建后应与拟合出的 DCP 一致。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
@@ -105,7 +104,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 ## 局限
 
 - 风格差值不包含目标相机传感器本身的色彩特性（同色异谱）。理光的色卡对齐只用 18 个彩色块，而且两台相机的样张来自不同批次，修正里会混有批次差异。
-- 哈苏的配对只在 dpreview 影棚日光一个光源下做；X2D Nature 是由 X1D 的 Nature 差别推算的，没有 X2D 样张验证，而且它叠加的是上一版（Phocus 配对）的 X2D Standard 表，与现在的 X2D Standard 不是同一个起点。
+- 哈苏的配对只在 dpreview 影棚日光一个光源下做；X2D Nature 是由 X1D 的 Nature 差别推算的，没有 X2D 样张验证，Nature 的差别本身来自 Phocus，Standard 来自 Lightroom 的 Camera Standard，两者来源不同。
 - 哈苏的检验集来自同一张照片和同一光源，只能说明对“别的颜色”能推广，不能说明对“别的光源”能推广。
 - Positive Film 等高饱和风格会把阳光下的饱和红推出 sRGB 色域，这是 Adobe 的 GR 风格本身的特性。
 
@@ -131,7 +130,7 @@ templates/                安装说明和哈苏预设
 
 ## 版权说明
 
-- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的部分（哈苏的 LookTable、色调曲线），矩阵和 HueSatMap 在构建时从本机读取。
+- 生成的 DCP 由 Adobe 随 Lightroom 附带的配置文件计算而来（Adobe 版权），仓库不分发 DCP。`data/tables/` 只包含本项目拟合的部分（哈苏的 LookTable、色调曲线；Standard 的色调曲线就是 DNG SDK 公开的 ACR3 默认曲线），矩阵和 HueSatMap 在构建时从本机读取。
 - 富士 LUT 来自 TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation 和 abpy/FujifilmCameraProfiles，两者均未声明许可证，构建时从上游克隆。
 - dpreview 的 RAW、Phocus 和 Lightroom 导出图不在仓库内，`data/` 只保存测量值。
 - 本仓库的脚本、数据和文档以 MIT 许可证发布。
