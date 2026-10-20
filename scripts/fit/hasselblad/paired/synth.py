@@ -33,13 +33,10 @@ T, conf, q = target(np.nan_to_num(A)); ok &= conf > 2.0
 print(f"{KIND}: cells {len(ok)}, kept {ok.sum()} (conf>2), colour kept {(ok & (np.hypot(q[:,1],q[:,2])>5)).sum()}")
 os.makedirs(OUTD, exist_ok=True)
 D = {k: S[k][ok] for k in S.files}; D['tgt1'] = S['tgt'][ok]; D['tgt'] = T[ok]
-# chart (for the warm-matrix script): A6300 export patches, grid measured on the export preview (scale 6)
+# chart: A6300 export patches, grid measured on the export preview (scale 6)
 NAMES = ["brown","skin","bluesky","foliage","blueflower","bluishgreen","orange","purplishblue","modred","purple","yellowgreen","orangeyellow","blue","green","red","yellow","magenta","cyan","white","n8","n6.5","n5","n3.5","black"]
 ch = np.array([np.asarray(La[(101+32*r)*6-36:(101+32*r)*6+36, int((425+30.6*c)*6)-36:int((425+30.6*c)*6)+36], float).reshape(-1, 3).mean(0) for r in range(4) for c in range(6)])
 cT, cconf, cq = target(ch)
 print("chart AS L*:", np.round(cq[:, 0], 1).tolist()); print("chart conf min %.1f" % cconf.min())
-if KIND == 'day':
-    np.savez(OUTD+'/samples6.npz', **D)
-else:
-    os.makedirs(OUTD+'/d', exist_ok=True); np.savez(OUTD+'/d/samples_low.npz', **D); np.save(OUTD+'/cT_low.npy', cT)
+np.savez(OUTD+'/samples6.npz', **D)
 np.save(OUTD+f'/chart_{KIND}.npy', cT)

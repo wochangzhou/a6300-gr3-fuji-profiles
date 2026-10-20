@@ -1,11 +1,11 @@
-理光 GR III 风格（移植到 Sony A6300，已按 dpreview 影棚 RAW 色卡对齐）
+理光 {MODEL} 风格（Adobe 的 {MODEL} Camera Matching 风格移植到 Sony A6300）
 
 安装（macOS）：
 1. 把 CameraProfiles 里的 7 个 .dcp 复制到
-~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/
-Windows：C:\Users\<用户名>\AppData\Roaming\Adobe\CameraRaw\CameraProfiles\
+   ~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/
+   （Windows：C:\Users\<用户名>\AppData\Roaming\Adobe\CameraRaw\CameraProfiles\）
 
-2. 把 Settings 里的 "A6300 Ricoh GR III" 文件夹复制到
+2. 把 Settings 里的 "A6300 Ricoh {MODEL}" 文件夹复制到
    ~/Library/Application Support/Adobe/CameraRaw/Settings/
    （Windows：C:\Users\<用户名>\AppData\Roaming\Adobe\CameraRaw\Settings\）
 

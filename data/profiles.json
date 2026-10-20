@@ -1,27 +1,4 @@
 {
- "fuji_base": {
-  "out": "Sony ILCE-6300 Adobe Standard Linear.dcp",
-  "own": {
-   "50981": [
-    4,
-    3,
-    "5a0000001000000010000000"
-   ],
-   "50982": [
-    11,
-    69120,
-    {
-     "file": "tables/fuji_base_50982.bin"
-    }
-   ],
-   "51108": [
-    4,
-    1,
-    "01000000"
-   ]
-  },
-  "ref": "upstream_linear"
- },
  "hasselblad_nature": {
   "out": "Sony ILCE-6300 Hasselblad X1D Nature.dcp",
   "own": {
@@ -29,22 +6,6 @@
     2,
     22,
     "48617373656c626c616420583144204e617475726500"
-   ],
-   "50938": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_nature_50938_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
-   "50939": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_nature_50939_hue_offset.bin",
-     "add_to_reference": true
-    }
    ],
    "50940": [
     11,
@@ -55,23 +16,9 @@
    ],
    "50942": [
     2,
-    133,
+    104,
     {
      "file": "tables/hasselblad_nature_50942.bin"
-    }
-   ],
-   "50964": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_nature_50964.bin"
-    }
-   ],
-   "50965": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_nature_50965.bin"
     }
    ],
    "50981": [
@@ -112,22 +59,6 @@
     24,
     "48617373656c626c616420583144205374616e6461726400"
    ],
-   "50938": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_standard_50938_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
-   "50939": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_standard_50939_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
    "50940": [
     11,
     512,
@@ -137,23 +68,9 @@
    ],
    "50942": [
     2,
-    128,
+    99,
     {
      "file": "tables/hasselblad_standard_50942.bin"
-    }
-   ],
-   "50964": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_standard_50964.bin"
-    }
-   ],
-   "50965": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_standard_50965.bin"
     }
    ],
    "50981": [
@@ -194,22 +111,6 @@
     22,
     "48617373656c626c616420583244204e617475726500"
    ],
-   "50938": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_x2d_nature_50938_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
-   "50939": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_x2d_nature_50939_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
    "50940": [
     11,
     512,
@@ -222,20 +123,6 @@
     105,
     {
      "file": "tables/hasselblad_x2d_nature_50942.bin"
-    }
-   ],
-   "50964": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_x2d_nature_50964.bin"
-    }
-   ],
-   "50965": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_x2d_nature_50965.bin"
     }
    ],
    "50981": [
@@ -276,22 +163,6 @@
     24,
     "48617373656c626c616420583244205374616e6461726400"
    ],
-   "50938": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_x2d_standard_50938_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
-   "50939": [
-    11,
-    8100,
-    {
-     "file": "tables/hasselblad_x2d_standard_50939_hue_offset.bin",
-     "add_to_reference": true
-    }
-   ],
    "50940": [
     11,
     512,
@@ -301,23 +172,9 @@
    ],
    "50942": [
     2,
-    128,
+    99,
     {
      "file": "tables/hasselblad_x2d_standard_50942.bin"
-    }
-   ],
-   "50964": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_x2d_standard_50964.bin"
-    }
-   ],
-   "50965": [
-    10,
-    9,
-    {
-     "file": "tables/hasselblad_x2d_standard_50965.bin"
     }
    ],
    "50981": [

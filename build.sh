@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build A6300 GR III + Fujifilm + Hasselblad X1D/X2D profiles from your local Lightroom install.
+# Build A6300 GR III / GR IV + Fujifilm + Hasselblad X1D/X2D profiles from your local Lightroom install.
 # Usage: ./build.sh [output_dir]
 #   LR_PROFILES env var overrides the Lightroom CameraProfiles path.
 set -euo pipefail
@@ -9,22 +9,25 @@ OUT="$(mkdir -p "${1:-$HERE/build}" && cd "${1:-$HERE/build}" && pwd)"
 [ -d "$LRP" ] || { echo "Lightroom CameraProfiles not found: $LRP" >&2; exit 1; }
 cd "$OUT"
 [ -d upstream ] || git clone --depth 1 https://github.com/TingfengLuo/Camera-Profile-for-Fujifilm-Film-Simulation.git upstream
-W="$OUT/work"; mkdir -p "$W" ported final
-cp "$HERE"/scripts/dcp.py "$HERE"/scripts/port.py "$W/"
+rm -rf ported assembled; mkdir -p ported assembled
 cd upstream
-echo "== 1/5 port GR III looks onto A6300 base";        python3 -I "$W/port.py" "$W" "$LRP" . ../ported
-echo "== 2/5 RAW chart -> base colours (A6300/GR III)"; python3 -I "$HERE/scripts/rawbase.py" "$HERE/scripts" "$LRP" "$HERE/data/raw/patches_raw.json" "$W/base.json" "$HERE/data/raw/wheel_raw.json" "$W/wheel_base.json"
-echo "== 3/5 fit A6300 -> GR III base correction";     python3 -I "$HERE/scripts/rawfit.py" "$HERE/scripts" "$W/base.json" "$W/wheel_base.json" gr3 "$W/model_gr3.json"
-echo "== 4/5 build aligned GR III profiles";            python3 -I "$HERE/scripts/gr3/rawmatch.py" "$HERE/scripts" "$LRP" "$W/model_gr3.json" ../ported ../final
-echo "== 5/5 Hasselblad X1D/X2D + Fuji base (fitted tables)"; python3 -I "$HERE/scripts/assemble.py" "$LRP" . "$HERE/data" ../assembled
+echo "== 1/3 port GR III / GR IV looks onto the A6300 base"
+python3 -I "$HERE/scripts/port.py" "$HERE/scripts" "$LRP" . ../ported "GR III"
+python3 -I "$HERE/scripts/port.py" "$HERE/scripts" "$LRP" . ../ported "GR IV"
+echo "== 2/3 Hasselblad X1D/X2D (fitted tables on the A6300 Adobe Standard)"
+python3 -I "$HERE/scripts/assemble.py" "$LRP" "$HERE/data" ../assembled
 cd "$OUT"
-E="$OUT/export"; GRD="$E/A6300 GR III Profiles"; FJD="$E/A6300 Fujifilm Simulation"; HBD="$E/A6300 Hasselblad"
-rm -rf "$E"; mkdir -p "$GRD/CameraProfiles" "$FJD/CameraProfiles" "$FJD/Settings/Fujifilm Simulation LUT" "$HBD/CameraProfiles" "$HBD/Settings/A6300 Hasselblad"
-cp final/*.dcp "$GRD/CameraProfiles/"
-cp "assembled/Sony ILCE-6300 Adobe Standard Linear.dcp" "$FJD/CameraProfiles/"
-cp assembled/"Sony ILCE-6300 Hasselblad X"*.dcp "$HBD/CameraProfiles/"; cp "$HERE"/templates/hasselblad/*.xmp "$HBD/Settings/A6300 Hasselblad/"
+echo "== 3/3 package"
+E="$OUT/export"; FJD="$E/A6300 Fujifilm Simulation"; HBD="$E/A6300 Hasselblad"
+rm -rf "$E"; mkdir -p "$FJD/CameraProfiles" "$FJD/Settings/Fujifilm Simulation LUT" "$HBD/CameraProfiles" "$HBD/Settings/A6300 Hasselblad"
+for M in "GR III" "GR IV"; do
+  D="$E/A6300 $M Profiles"; mkdir -p "$D/CameraProfiles"; cp "ported/Sony ILCE-6300 $M "*.dcp "$D/CameraProfiles/"
+  sed "s/{MODEL}/$M/g" "$HERE/templates/gr_install.txt" > "$D/安装说明.txt"
+done
+cp "upstream/Adobe Standard Linear Profile/Sony ILCE-6300 Adobe Standard Linear.dcp" "$FJD/CameraProfiles/"
 cp upstream/"Fujifilm Simulation LUT"/*.xmp "$FJD/Settings/Fujifilm Simulation LUT/"
-cp "$HERE/templates/gr3_install.txt" "$GRD/安装说明.txt"; cp "$HERE/templates/fuji_install.txt" "$FJD/安装说明.txt"; cp "$HERE/templates/hasselblad_install.txt" "$HBD/安装说明.txt"
+cp assembled/"Sony ILCE-6300 Hasselblad X"*.dcp "$HBD/CameraProfiles/"; cp "$HERE"/templates/hasselblad/*.xmp "$HBD/Settings/A6300 Hasselblad/"
+cp "$HERE/templates/fuji_install.txt" "$FJD/安装说明.txt"; cp "$HERE/templates/hasselblad_install.txt" "$HBD/安装说明.txt"
 python3 -I "$HERE/scripts/groups.py" "$OUT"
-cd "$E" && zip -qr -X "A6300 GR III Profiles.zip" "A6300 GR III Profiles" && zip -qr -X "A6300 Fujifilm Simulation.zip" "A6300 Fujifilm Simulation" && zip -qr -X "A6300 Hasselblad.zip" "A6300 Hasselblad"
+cd "$E"; for d in "A6300 GR III Profiles" "A6300 GR IV Profiles" "A6300 Fujifilm Simulation" "A6300 Hasselblad"; do zip -qr -X "$d.zip" "$d"; done
 echo "Done: $E"

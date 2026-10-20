@@ -1,6 +1,7 @@
 import sys,struct,math,random
 sys.path.insert(0,sys.argv[1]); from dcp import read
 LR,REPO,OUT=sys.argv[2],sys.argv[3],sys.argv[4]
+MODEL=sys.argv[5] if len(sys.argv)>5 else "GR III"   # "GR III" or "GR IV"
 PP2XYZ=[[0.7977,0.1352,0.0313],[0.2880,0.7119,0.0001],[0.0,0.0,0.8249]]
 def inv(m):
     a,b,c=m[0];d,e,f=m[1];g,h,i=m[2]
@@ -52,7 +53,7 @@ class Table:
 def tag(t,k): return t[k][2]
 def table(t,dk,dd,ek=None): return Table(tag(t,dk),tag(t,dd),tag(t,ek)[0] if ek and ek in t else 0)
 
-grAS=read(f"{LR}/Adobe Standard/RICOH GR III Adobe Standard.dcp")
+grAS=read(f"{LR}/Adobe Standard/RICOH {MODEL} Adobe Standard.dcp")
 FM_AS=m3(tag(grAS,50965)); HSM_GR=table(grAS,50937,50939)
 camToPP_AS=mm(XYZ2PP,FM_AS); PPToCam_AS=inv(camToPP_AS)
 def base(c): return HSM_GR.apply(mv(camToPP_AS,c))
@@ -76,7 +77,7 @@ def f32(vals): return (11,len(vals),struct.pack('<%df'%len(vals),*vals))
 
 HD,SD,VD=90,16,16
 for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Soft Monotone","Hard Monotone"]:
-    pf=read(f"{LR}/Camera/Ricoh GR III/RICOH GR III Camera {style}.dcp")
+    pf=read(f"{LR}/Camera/Ricoh {MODEL}/RICOH {MODEL} Camera {style}.dcp")
     camToPP_PF=mm(XYZ2PP,m3(tag(pf,50965)))
     LOOK=table(pf,50981,50982,51108) if 50981 in pf else None
     # DNG render order: HueSatMap -> exposure (BaselineExposure + offset) -> LookTable -> ToneCurve.
@@ -99,14 +100,14 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
                 vs=enc(vT)/enc(vX) if vX>1e-7 else 1.0
                 o=3*(vi*HD*SD+hi*SD+si); out[o:o+3]=[dh,ss,vs]
     t={k:(v[0],v[1],v[3]) for k,v in sony.items() if k in (50708,50721,50722,50778,50779,50932,50937,50938,50939,50941,50964,50965)}
-    name=f"GR III {style}".encode()+b'\0'; t[50936]=(2,len(name),name)
-    cp=b'Ported from Adobe RICOH GR III profiles\0'; t[50942]=(2,len(cp),cp)
+    name=f"{MODEL} {style}".encode()+b'\0'; t[50936]=(2,len(name),name)
+    cp=f'Ported from Adobe RICOH {MODEL} profiles\0'.encode(); t[50942]=(2,len(cp),cp)
     t[50940]=(11,pf[50940][1],pf[50940][3])
     t[50981]=(4,3,struct.pack('<3I',HD,SD,VD)); t[50982]=f32(out)
     t[51108]=(4,1,struct.pack('<I',1))
     t[51109]=(10,1,struct.pack('<ii',int(round(tag(pf,51109)[0]*10000)) if 51109 in pf else 0,10000))
     t[51110]=(4,1,struct.pack('<I',1))
-    p=f"{OUT}/Sony ILCE-6300 GR III {style}.dcp"; write(p,t)
+    p=f"{OUT}/Sony ILCE-6300 {MODEL} {style}.dcp"; write(p,t)
     # verify: GR camera colors through ported look vs original GR style
     NEW=Table((HD,SD,VD),out,1); random.seed(1); e=0
     for _ in range(3000):

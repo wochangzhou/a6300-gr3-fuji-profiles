@@ -1,7 +1,7 @@
 import numpy as np,json
 NAMES=["brown","skin","bluesky","foliage","blueflower","bluishgreen","orange","purplishblue","modred","purple","yellowgreen","orangeyellow","blue","green","red","yellow","magenta","cyan","white","n8","n6.5","n5","n3.5","black"]
 # tag: crop origin in linear px, grid corners (first/last patch centre) in crop px
-G={"a6300":((2409,501),(134,127,1064,676)),"xs20":((2448,468),(183,183,1147,755)),"gr3":((2357,451),(176,153,1117,706))}
+G={"a6300":((2409,501),(134,127,1064,676))}
 out={}
 for tag,((ox,oy),(x0,y0,x1,y1)) in G.items():
     d=np.load(f"{tag}_lin.npy",mmap_mode='r'); res={}
