@@ -1,7 +1,7 @@
 # Build chart-aligned GR III / GR IV profiles from the RAW-fitted A6300 -> GR base correction:
 # rotate each LookTable node's input (exposure-scaled Adobe Standard base) by the fitted hue shift and
-# scale its saturation, then look up the ported GR style. Brightness is left alone (the value ratio
-# between dpreview batches is mostly a batch/lighting difference, so it is not applied).
+# scale its saturation and value, then look up the ported GR style. Exposure is normalised on the chart
+# white, so the value ratio is per colour (warm patches are ~5-9% darker on the GR than on the A6300).
 # Usage: rawmatch.py <scripts> <LR_PROFILES> <model.json> <ported_dir> <out_dir> <"GR III"|"GR IV">
 import sys,struct,json,math,os
 S=sys.argv[1]; LRP=sys.argv[2]; MJSON=sys.argv[3]; SRC_DIR=sys.argv[4]; DST_DIR=sys.argv[5]; CAM=sys.argv[6]
@@ -15,7 +15,7 @@ def pred(h,s,k):
     return num/wt
 def corr(hdeg,s):
     fade=min(1.0,s/0.15)   # leave neutrals alone
-    return pred(hdeg,s,3)*fade, math.exp(pred(hdeg,s,4)*fade), 1.0
+    return pred(hdeg,s,3)*fade, math.exp(pred(hdeg,s,4)*fade), math.exp(pred(hdeg,s,5)*fade)
 # Both cameras reach the GR look tables at the same exposure-scaled base (renders normalised
 # to the same scene white), so the GR BaselineExposureOffset is kept as is.
 os.makedirs(DST_DIR,exist_ok=True)

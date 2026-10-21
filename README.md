@@ -35,14 +35,14 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 - 富士：用上游原版。
 - 哈苏：Standard 用同一张哈苏 RAW 在 Lightroom 里的 Adobe Standard 和 Camera Standard 导出配对；Nature 没有 Lightroom 对应配置文件，用 Phocus Nature 导出配对。
 
-理光另外做一层**跨机色卡对齐**，处理 A6300 和 GR 的 Adobe Standard 对同一张色卡给出的颜色差别。这一层只修色相和饱和度，**不修明度**：批次之间的曝光和布光差异主要表现在明度上，修进去会让彩色普遍变暗。色相和饱和度里同样可能混有批次差异，这是实拍对比后的取舍。
+理光另外做一层**跨机色卡对齐**，处理 A6300 和 GR 的 Adobe Standard 对同一张色卡给出的颜色差别。这一层修色相、饱和度和明度。曝光先按白块归一化，所以明度比是按颜色的：GR 的暖色块比 A6300 暗约 5–9%（灰阶一致）。早先不修明度时，A6300 上红、橙、肤色、棕等暖色比 GR 原机亮 GR IV +3～+5 L*、GR III +1.4～+4 L*，实拍看起来红色附近亮了一块；修上后与原机差多在 ±1 L* 以内（按 DNG 参考流程模拟 Adobe 的 GR Camera 风格对比）。修正里同样可能混有批次差异，这是实拍对比后的取舍。
 
 ## 理光 GR III / GR IV
 
 1. **风格移植**（`scripts/port.py`）：以 GR 自己的 Adobe Standard 基础颜色（ForwardMatrix + HueSatMap，D65 端点）为中间空间。对新 LookTable 的每个节点，迭代反解对应的 GR 相机 RGB（不截断负值），用 Adobe 的 GR 风格渲染，再把结果写成相对节点的色相/饱和度/明度偏移。节点输入是已乘曝光的基础颜色。新表接到 A6300 的矩阵和 HueSatMap 上，色调曲线、曝光偏移（GR III +0.55，GR IV +0.5）和 DefaultBlackRender 沿用 GR 原版。最后一个参数选机型（`"GR III"` 或 `"GR IV"`）；用 3000 个随机颜色检查移植误差（sRGB 编码下最大约 0.07–0.16，主要在高饱和边缘）。
 2. **RAW 测量**：`scripts/raw/decode.py`（rawpy/LibRaw）只做去马赛克，得到线性相机 RGB。`scripts/raw/extract.py` 取 24 色卡每块中心 60×60 像素的均值；`scripts/raw/wheel.py` 在色轮的 12 个扇区 × 4 圈取 48 个点，作为**独立验证集**。结果在 `data/raw/`（A6300、GR III、GR IV）。
 3. **基础颜色**（`scripts/rawbase.py`）：用灰块求相机中性点，按 DNG SDK 的方式迭代估计色温，在两组标定之间插值，再经各自的 Adobe Standard ForwardMatrix → ProPhoto → HueSatMap 得到基础颜色。曝光在 HueSatMap 之前按白块归一化。
-4. **跨机对齐**（`scripts/rawfit.py`、`scripts/gr/rawmatch.py`）：A6300 → GR 的色相差、饱和度比分别用（色相 × 饱和度）核回归建模，核宽和收缩强度用色卡留一法选择；近中性色（饱和度 <0.15）逐渐不修。每个 LookTable 节点先按模型把 A6300 基础颜色的色相和饱和度转到 GR 的位置，再查移植后的 GR 风格表。明度比也会拟合并报告，但不应用。
+4. **跨机对齐**（`scripts/rawfit.py`、`scripts/gr/rawmatch.py`）：A6300 → GR 的色相差、饱和度比分别用（色相 × 饱和度）核回归建模，核宽和收缩强度用色卡留一法选择；近中性色（饱和度 <0.15）逐渐不修。每个 LookTable 节点先按模型把 A6300 基础颜色的色相、饱和度和明度转到 GR 的位置，再查移植后的 GR 风格表。
 
 色卡留一法 / 色轮（独立）结果（`rawfit.py` 输出，色相单位为度，饱和度为对数比）：GR III 色相 2.17 → 1.64 / 3.82 → 3.07，饱和度 0.041 → 0.019 / 0.151 → 0.127；GR IV 色相 3.46 → 2.59 / 4.39 → 3.77，饱和度 0.058 → 0.052 / 0.185 → 0.162。
 
