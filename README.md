@@ -54,7 +54,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 
 每台哈苏只和自己比：同一个 RAW 的两份导出逐像素配对，差异只来自渲染（同一帧、同一张色卡、同一种光），再把这个差异迁移到 A6300 自己的 Adobe Standard 上。A6300 的颜色不和任何哈苏照片直接拟合。
 
-- **Standard**：目标是 Lightroom 里哈苏的 **Camera Standard**（Adobe 按 Phocus 渲染做的 Camera Matching 配置文件）。同一个 RAW 在 Lightroom 里导出两次，只换配置文件（Adobe Standard / Camera Standard），白平衡、曝光、镜头校正完全相同，ProPhoto 16 位 TIFF。
+- **Standard**：目标是 Lightroom 里哈苏的 **Camera Standard**（Adobe 按 Phocus 渲染做的 Camera Matching 配置文件）。同一个 RAW 在 Lightroom 里导出两次，只换配置文件（Adobe Standard / Camera Standard），白平衡、曝光、镜头校正完全相同，ProPhoto 16 位 TIFF。X1D 的这一对导出曝光 −0.45（高光不溢出），与此前曝光 0 的一对相比，结果在 A6300 上全图只差 ΔE 0.05。
 - **Nature**：Lightroom 没有对应的 Camera 配置文件，只能用 Phocus：Phocus Nature 导出（Adobe RGB 16 位 TIFF）与 N5 对齐的 Lightroom Adobe Standard 导出配对。
 
 渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard 0，Nature +0.11）→ LookTable（90×16×16，同机配对拟合）→ 色调曲线（Standard 为 Adobe Standard 所用的 ACR3 默认曲线，即 DNG SDK 的 `kAdobeDefaultCurve`；Nature 见下）。灰阶在两种配置文件下都与 Adobe Standard 一致。
@@ -71,7 +71,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 
 | 配置文件 | 检验彩色 | 中性 | 色轮区域（未训练） |
 |---|---|---|---|
-| X1D Standard | 1.13 → 1.00 | 1.16 → 1.15 | 1.13 → 1.07 |
+| X1D Standard | 1.13 → 1.01 | 1.11 → 1.09 | 1.05 → 1.04 |
 | X2D Standard | 1.15 → 1.03 | 1.21 → 1.18 | 1.10 → 1.07 |
 
 Camera Standard 的合成目标与同批真实 X1D Phocus 输出相比，彩色约 2.1、灰阶 b 约 −0.7（Phocus 略偏冷偏绿），即 Lightroom 的 Camera Standard 与 Phocus 并不完全相同。之前用 Phocus 配对的版本与现在相比，A6300 上全图平均只差 ΔE 0.5–0.6，高饱和色（C*>20）差 2–4；为了数据来源统一，Standard 只用 Lightroom。
