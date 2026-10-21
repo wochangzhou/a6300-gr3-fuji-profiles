@@ -6,7 +6,7 @@
 import sys,struct,json,math,os
 S=sys.argv[1]; LRP=sys.argv[2]; MJSON=sys.argv[3]; SRC_DIR=sys.argv[4]; DST_DIR=sys.argv[5]; CAM=sys.argv[6]
 sys.argv=[sys.argv[0],S,LRP,'.','/dev/null',CAM]
-exec(open(S+'/port.py').read().split('HD,SD,VD=90,16,16')[0])
+exec(open(S+'/port.py').read().split('HD,SD,VD=90,32,16')[0])
 M=json.load(open(MJSON)); TR=M["train"]; PR={int(k):v for k,v in M["params"].items()}
 def pred(h,s,k):
     sh,ss,lam=PR[k]; num=0;wt=lam

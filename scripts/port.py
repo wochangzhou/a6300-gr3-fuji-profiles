@@ -75,7 +75,7 @@ def write(path,tags):
     open(path,'wb').write(b'IIRC'+struct.pack('<I',8)+struct.pack('<H',n)+ifd+b'\0\0\0\0'+data)
 def f32(vals): return (11,len(vals),struct.pack('<%df'%len(vals),*vals))
 
-HD,SD,VD=90,16,16
+HD,SD,VD=90,32,16
 for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Soft Monotone","Hard Monotone"]:
     pf=read(f"{LR}/Camera/Ricoh {MODEL}/RICOH {MODEL} Camera {style}.dcp")
     camToPP_PF=mm(XYZ2PP,m3(tag(pf,50965)))
