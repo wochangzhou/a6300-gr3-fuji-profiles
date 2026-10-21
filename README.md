@@ -57,7 +57,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 - **Standard**：目标是 Lightroom 里哈苏的 **Camera Standard**（Adobe 按 Phocus 渲染做的 Camera Matching 配置文件）。同一个 RAW 在 Lightroom 里导出两次，只换配置文件（Adobe Standard / Camera Standard），白平衡、曝光、镜头校正完全相同，ProPhoto 16 位 TIFF。X1D 的这一对导出曝光 −0.45（高光不溢出），与此前曝光 0 的一对相比，结果在 A6300 上全图只差 ΔE 0.05。
 - **Nature**：Lightroom 没有对应的 Camera 配置文件，只能用 Phocus：Phocus Nature 导出（Adobe RGB 16 位 TIFF）与 N5 对齐的 Lightroom Adobe Standard 导出配对。
 
-渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard 0，Nature +0.11）→ LookTable（90×16×16，同机配对拟合）→ 色调曲线（Standard 为 Adobe Standard 所用的 ACR3 默认曲线，即 DNG SDK 的 `kAdobeDefaultCurve`；Nature 见下）。灰阶在两种配置文件下都与 Adobe Standard 一致。
+渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset（Standard 0，Nature +0.11）→ LookTable（90×16×16，同机配对拟合）→ 色调曲线（Standard 为 Adobe Standard 所用的 ACR3 默认曲线，即 DNG SDK 的 `kAdobeDefaultCurve`；Nature 见下）。灰阶在两种配置文件下都与 Adobe Standard 一致。哈苏配置文件不带 DefaultBlackRender（与 Adobe Standard、Camera Standard 一样用默认的 Auto 黑位处理）；设成 None 时中灰会比 Adobe Standard 亮约 1 L*。理光移植版保留 None，与 Adobe 的 GR Camera 配置文件一致。
 
 ### Standard（`paired/pairs_lr.py`）
 
