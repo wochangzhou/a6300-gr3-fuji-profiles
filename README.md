@@ -63,16 +63,16 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 
 1. **配对**（`pairs_lr.py`）：两份 Lightroom 导出像素对齐，取 4–8 万个平整格。两边白平衡、曝光天然一致：中性格 ΔE 0.4–0.5，各亮度段灰阶 Δa、Δb 在 ±0.4 以内，ΔL* ≤0.3（Camera Standard 与 Adobe Standard 一样亮）；色卡 N5 的 a*、b* 在 ±0.13 以内。Camera Standard 比 Adobe Standard 更浓（X1D C* +3～+14，X2D +1～+10），蓝 180–240° 色相 −6～−10°。
 2. **A6300 取样**（`align.py`、`warp.py`、`dense_sample.py`）：在 A6300 的 dpreview 日光 RAW 上取约 7 万个 6×6 平整格的基础颜色（白平衡 → ForwardMatrix → HueSatMap），两个色轮不参与训练。同批（2016 年）X1D 的 Phocus 输出对齐到同一网格，只作对照，不参与拟合。
-3. **迁移到 A6300**（`synth.py`，第 8 个参数 `lr`）：把配对差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
-4. **颜色表**（`pure_correct.py`）：起点为 A6300 Adobe Standard 的矩阵和 HueSatMap、ACR3 色调曲线、曝光偏移 0、恒等 LookTable，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。模型曝光 `KMODEL=0.5082`：在这个值下 ACR3 曲线给出的 A6300 色卡灰阶与 Adobe Standard 导出一致（N8–N3.5 平均差 0.3 L*）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 15°、×0.82–1.29、×0.97–1.07）。LookTable 在中性色上不改明度。
+3. **迁移到 A6300**（`synth.py`，第 8 个参数 `lr`）：A6300 的 Adobe Standard 导出要**关闭镜头校正**（与哈苏导出一致，也与从 RAW 取的基础颜色一致；开着暗角校正时目标在画面边缘比模型亮 +1.3～+1.9 L*）。关闭畸变校正后的取样位置由 `lens_shift.py` 对开着校正的那份导出逐块配准得到（位移 ±3 px，拟合残差 0.2 px），运行时设环境变量 `SHIFT`。把配对差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
+4. **颜色表**（`pure_correct.py`）：起点为 A6300 Adobe Standard 的矩阵和 HueSatMap、ACR3 色调曲线、曝光偏移 0、恒等 LookTable，直接拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。模型曝光 `KMODEL=0.5033`：在这个值下 ACR3 曲线给出的 A6300 色卡灰阶与 Adobe Standard 导出一致（N8–N3.5 平均差 0.3 L*）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 13°、×0.87–1.32、×0.97–1.05）。LookTable 在中性色上不改明度。
 5. **曝光和色调**：同一个 RAW，Camera Standard 与 Adobe Standard 的灰阶在每一档亮度上都相同（配对 ΔL* ≤0.3），Lightroom 的 Camera Standard 与 Phocus 导出看起来也一样。所以 Standard 直接用 Adobe Standard 的色调曲线和曝光（偏移 0），灰阶与 Adobe Standard 完全相同。早先用 Phocus 拟合的色调曲线在中灰对齐后高光仍偏亮 2–4 L*，已不用。
 
 对各自合成目标的检验结果（ΔE2000 均值；“起点”为恒等 LookTable）：
 
 | 配置文件 | 检验彩色 | 中性 | 色轮区域（未训练） |
 |---|---|---|---|
-| X1D Standard | 1.13 → 1.01 | 1.11 → 1.09 | 1.05 → 1.04 |
-| X2D Standard | 1.15 → 1.03 | 1.21 → 1.18 | 1.10 → 1.07 |
+| X1D Standard | 1.05 → 0.95 | 0.95 → 0.95 | 1.09 → 1.10 |
+| X2D Standard | 1.05 → 0.98 | 1.03 → 1.02 | 1.10 → 1.10 |
 
 Camera Standard 的合成目标与同批真实 X1D Phocus 输出相比，彩色约 2.1、灰阶 b 约 −0.7（Phocus 略偏冷偏绿），即 Lightroom 的 Camera Standard 与 Phocus 并不完全相同。之前用 Phocus 配对的版本与现在相比，A6300 上全图平均只差 ΔE 0.5–0.6，高饱和色（C*>20）差 2–4；为了数据来源统一，Standard 只用 Lightroom。
 

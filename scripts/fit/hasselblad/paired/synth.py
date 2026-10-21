@@ -5,6 +5,7 @@ import sys, os, json, shutil, numpy as np
 W, PAIRS, LREXP, SAMPLES, OUTD, GAIN, KIND = sys.argv[1:8]; GAIN = float(GAIN)
 TENC = sys.argv[8] if len(sys.argv) > 8 else 'phocus'  # 'lr': pair targets are Lightroom ProPhoto exports (pairs_lr.py)
 sys.path.insert(0, W); from lab import *
+SHIFT = np.load(os.environ['SHIFT']) if os.environ.get('SHIFT') else None  # lens-uncorrected export: shift field from the corrected one
 PP2X = np.array([[0.7977,0.1352,0.0313],[0.2880,0.7119,0.0001],[0.0,0.0,0.8249]]); W50 = np.array([0.9642,1,0.8249])
 def lab2pp(L):
     fy = (L[:, 0]+16)/116; fx = fy+L[:, 1]/500; fz = fy-L[:, 2]/200
@@ -25,7 +26,11 @@ La = np.load(LREXP, mmap_mode='r'); Lw = np.asarray(La, np.float32).reshape(2000
 def sample_cells(xy):
     out = []
     for cx, cy in xy:
-        dx, dy = 7-2*cx/3000, 7-2*cy/2000; x0 = int(round(cx-dx-3)); y0 = int(round(cy-dy-3))
+        dx, dy = 7-2*cx/3000, 7-2*cy/2000
+        if SHIFT is not None:
+            u, v = (cx-dx-1500)/1500, (cy-dy-1000)/1500; f = np.array([1, u, v, u*u, u*v, v*v, u*(u*u+v*v), v*(u*u+v*v)])
+            dx, dy = dx-f@SHIFT['cx'], dy-f@SHIFT['cy']
+        x0 = int(round(cx-dx-3)); y0 = int(round(cy-dy-3))
         out.append(Lw[y0:y0+6, x0:x0+6].reshape(-1, 3).mean(0) if 0 <= x0 < 2994 and 0 <= y0 < 1994 else [np.nan]*3)
     return np.array(out)
 def target(rgb16):
