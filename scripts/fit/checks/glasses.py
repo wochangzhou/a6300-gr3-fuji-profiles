@@ -9,7 +9,7 @@ reg=a[1270:1400,690:1010].reshape(-1,3)
 b=reg[:,2]/np.maximum(reg.mean(1),1e-4); o=np.argsort(-b); sel=reg[o[:600]]; sel=sel[sel.max(1)>0.005]
 print("glasses blue pixels",len(sel),"camera rgb p50",np.round(np.median(sel,0),4),"p95 max",np.round(np.percentile(sel.max(1),95),4))
 PP=np.linalg.inv(np.array([[0.7977,0.1352,0.0313],[0.2880,0.7119,0.0001],[0.0,0.0,0.8249]]))
-HB=read(os.path.expanduser('~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/')+'Sony ILCE-6300 Hasselblad X1D Standard.dcp')[50940][2]
+HB=read(os.path.expanduser('~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/')+'Sony ILCE-6300 Hasselblad Standard.dcp')[50940][2]
 X2S=np.array([[3.1338561,-1.6168667,-0.4906146],[-0.9787684,1.9161415,0.0334540],[0.0719453,-0.2289914,1.4052427]])  # XYZ D50 -> linear sRGB
 PPX=np.array([[0.7977,0.1352,0.0313],[0.2880,0.7119,0.0001],[0.0,0.0,0.8249]])
 def tone(p,c):
@@ -29,8 +29,8 @@ def run(path,label="",use_look=True):
     st=np.array(stats); print(f"{label:34s} ProPhoto sat p50 {np.median(st[:,0]):.2f}  outside sRGB {100*st[:,1].mean():5.1f}%  how far outside (p50) {np.median(st[:,2]):.2f}")
 CP=os.path.expanduser('~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/')
 run('/Applications/Adobe Lightroom Classic/Adobe Lightroom Classic.app/Contents/Resources/CameraProfiles/Adobe Standard/Sony ILCE-6300 Adobe Standard.dcp',label="Adobe Standard + HB curve")
-run(CP+'Sony ILCE-6300 Hasselblad X1D Standard.dcp',label="Hasselblad Standard")
+run(CP+'Sony ILCE-6300 Hasselblad Standard.dcp',label="Hasselblad Standard")
 run(sys.argv[2],label="Hasselblad Standard Original")
-run(CP+'Sony ILCE-6300 Hasselblad X1D Standard.dcp',label="Hasselblad Standard, no LookTable",use_look=False)
+run(CP+'Sony ILCE-6300 Hasselblad Standard.dcp',label="Hasselblad Standard, no LookTable",use_look=False)
 run(CP+'Sony ILCE-6300 Adobe Standard Linear.dcp' if False else '/Applications/Adobe Lightroom Classic/Adobe Lightroom Classic.app/Contents/Resources/CameraProfiles/Adobe Standard/Sony ILCE-6300 Adobe Standard.dcp',label="(same curve) Adobe Standard")
-run(CP+'Sony ILCE-6300 Hasselblad X1D Nature.dcp',label="Nature (current)")
+run(CP+'Sony ILCE-6300 Hasselblad Nature.dcp',label="Nature (current)")

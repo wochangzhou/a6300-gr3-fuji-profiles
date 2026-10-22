@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build A6300 GR III / GR IV + Fujifilm + Hasselblad X1D/X2D profiles from your local Lightroom install.
+# Build A6300 GR III / GR IV + Fujifilm + Hasselblad profiles from your local Lightroom install.
 # Usage: ./build.sh [output_dir]
 #   LR_PROFILES env var overrides the Lightroom CameraProfiles path.
 set -euo pipefail
@@ -20,7 +20,7 @@ for C in gr3:"GR III" gr4:"GR IV"; do
   python3 -I "$HERE/scripts/rawfit.py" "$HERE/scripts" "$W/base.json" "$W/wheel_base.json" "${C%%:*}" "$W/model_${C%%:*}.json"
   python3 -I "$HERE/scripts/gr/rawmatch.py" "$HERE/scripts" "$LRP" "$W/model_${C%%:*}.json" ../ported ../final "${C#*:}"
 done
-echo "== 3/4 Hasselblad X1D/X2D (fitted tables on the A6300 Adobe Standard)"
+echo "== 3/4 Hasselblad Standard / Nature (fitted tables on the A6300 Adobe Standard)"
 python3 -I "$HERE/scripts/assemble.py" "$LRP" "$HERE/data" ../assembled
 cd "$OUT"
 echo "== 4/4 package"
@@ -32,7 +32,7 @@ for M in "GR III" "GR IV"; do
 done
 cp "upstream/Adobe Standard Linear Profile/Sony ILCE-6300 Adobe Standard Linear.dcp" "$FJD/CameraProfiles/"
 cp upstream/"Fujifilm Simulation LUT"/*.xmp "$FJD/Settings/Fujifilm Simulation LUT/"
-cp assembled/"Sony ILCE-6300 Hasselblad X"*.dcp "$HBD/CameraProfiles/"; cp "$HERE"/templates/hasselblad/*.xmp "$HBD/Settings/A6300 Hasselblad/"
+cp assembled/"Sony ILCE-6300 Hasselblad "*.dcp "$HBD/CameraProfiles/"; cp "$HERE"/templates/hasselblad/*.xmp "$HBD/Settings/A6300 Hasselblad/"
 cp "$HERE/templates/fuji_install.txt" "$FJD/安装说明.txt"; cp "$HERE/templates/hasselblad_install.txt" "$HBD/安装说明.txt"
 python3 -I "$HERE/scripts/groups.py" "$OUT"
 cd "$E"; for d in "A6300 GR III Profiles" "A6300 GR IV Profiles" "A6300 Fujifilm Simulation" "A6300 Hasselblad"; do zip -qr -X "$d.zip" "$d"; done

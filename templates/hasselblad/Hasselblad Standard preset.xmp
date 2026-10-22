@@ -4,7 +4,7 @@
     xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
    crs:PresetType="Normal"
    crs:Cluster=""
-   crs:UUID="F971593BD5A444C5B3A6A87FBFF3B31F"
+   crs:UUID="F32AB2736F6F452B8DF81AA7B2ED0F76"
    crs:SupportsAmount2="False"
    crs:SupportsAmount="False"
    crs:SupportsColor="True"
@@ -25,7 +25,7 @@
    crs:HasSettings="True">
    <crs:Name>
     <rdf:Alt>
-     <rdf:li xml:lang="x-default">Hasselblad X2D Standard</rdf:li>
+     <rdf:li xml:lang="x-default">Hasselblad Standard</rdf:li>
     </rdf:Alt>
    </crs:Name>
    <crs:ShortName>
@@ -73,9 +73,9 @@
     </rdf:Seq>
    </crs:ToneCurvePV2012Blue>
    <crs:Look
-    crs:Name="Hasselblad X2D Standard"
+    crs:Name="Hasselblad Standard"
     crs:Amount="1"
-    crs:UUID="DC77EA2D376441F98EF7DB96121F0563"
+    crs:UUID="C0C4350A97514DF9ADF9736DDB52FE1F"
     crs:SupportsAmount="false"
     crs:SupportsMonochrome="false"
     crs:SupportsOutputReferred="false"

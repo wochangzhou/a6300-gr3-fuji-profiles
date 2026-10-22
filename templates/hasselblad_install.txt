@@ -1,4 +1,4 @@
-哈苏 X1D / X2D 风格（Sony A6300：Standard 按 Lightroom 里哈苏的 Camera Standard，Nature 按 X2D 的 Phocus Nature 相对 Standard 的差别）
+哈苏风格（Sony A6300：Standard 按哈苏 X2D 的 Phocus Standard，含 Phocus 色调曲线；Nature 按 X2D 的 Phocus Nature 相对 Standard 的差别）
 
 安装（macOS）：
 1. 把 CameraProfiles 里的 .dcp 复制到
@@ -8,8 +8,6 @@
 Windows 对应 C:\Users\<用户名>\AppData\Roaming\Adobe\CameraRaw\ 下的同名文件夹。
 
 重启 Lightroom，打开 A6300 的 RAW，在配置文件浏览器或预设面板的 "A6300 哈苏模拟" 组里选择：
-- Hasselblad X1D Standard
-- Hasselblad X2D Standard
-- Hasselblad X1D Nature
-- Hasselblad X2D Nature
+- Hasselblad Standard
+- Hasselblad Nature
 仅对 Sony ILCE-6300 的 RAW 有效。

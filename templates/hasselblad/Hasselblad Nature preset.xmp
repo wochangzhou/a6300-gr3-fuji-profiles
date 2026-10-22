@@ -4,7 +4,7 @@
     xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
    crs:PresetType="Normal"
    crs:Cluster=""
-   crs:UUID="7413856663B24E8D8CC786D8454F1E0D"
+   crs:UUID="FB52D7AA522C4759856D64DFB5BA05A9"
    crs:SupportsAmount2="False"
    crs:SupportsAmount="False"
    crs:SupportsColor="True"
@@ -27,7 +27,7 @@
    crs:HasSettings="True">
    <crs:Name>
     <rdf:Alt>
-     <rdf:li xml:lang="x-default">Hasselblad X2D Nature</rdf:li>
+     <rdf:li xml:lang="x-default">Hasselblad Nature</rdf:li>
     </rdf:Alt>
    </crs:Name>
    <crs:Group>
@@ -60,9 +60,9 @@
     </rdf:Seq>
    </crs:ToneCurvePV2012Blue>
    <crs:Look
-    crs:Name="Hasselblad X2D Nature"
+    crs:Name="Hasselblad Nature"
     crs:Amount="1"
-    crs:UUID="F33B9EC196924384BD1146950BD52525"
+    crs:UUID="AED7152319384104A25C496B568B9B6E"
     crs:SupportsAmount="false"
     crs:SupportsMonochrome="false"
     crs:SupportsOutputReferred="false"

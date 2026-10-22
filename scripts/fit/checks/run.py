@@ -25,7 +25,7 @@ def table(p,dims,data,encd):
             for si,ws in ((s0,1-sf),(s0+1,sf)): acc=acc+T[vi,hi,si]*(wv*wh*ws)[:,None]
     nv=dec(np.minimum(ve*acc[:,2],1)) if (encd and Vv>1) else np.minimum(v*acc[:,2],1)
     return hsv2rgb(h+acc[:,0],np.minimum(s*acc[:,1],1),nv)
-HBc=np.array(read(CP+'Sony ILCE-6300 Hasselblad X1D Standard.dcp')[50940][2])
+HBc=np.array(read(CP+'Sony ILCE-6300 Hasselblad Standard.dcp')[50940][2])
 def tone(p,c):
     cx,cy=c[0::2],c[1::2]; p=np.clip(p,0,1); o=np.argsort(p,-1); lo=np.take_along_axis(p,o[:,:1],-1); mi=np.take_along_axis(p,o[:,1:2],-1); hi=np.take_along_axis(p,o[:,2:],-1)
     L=np.interp(lo,cx,cy); H=np.interp(hi,cx,cy); M=L+(H-L)*np.where(hi>lo,(mi-lo)/np.maximum(hi-lo,1e-12),0)

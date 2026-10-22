@@ -1,11 +1,11 @@
 {
  "hasselblad_nature": {
-  "out": "Sony ILCE-6300 Hasselblad X1D Nature.dcp",
+  "out": "Sony ILCE-6300 Hasselblad Nature.dcp",
   "own": {
    "50936": [
     2,
-    22,
-    "48617373656c626c616420583144204e617475726500"
+    18,
+    "48617373656c626c6164204e617475726500"
    ],
    "50940": [
     11,
@@ -16,7 +16,7 @@
    ],
    "50942": [
     2,
-    115,
+    89,
     {
      "file": "tables/hasselblad_nature_50942.bin"
     }
@@ -47,12 +47,12 @@
   "ref": "adobe_standard"
  },
  "hasselblad_standard": {
-  "out": "Sony ILCE-6300 Hasselblad X1D Standard.dcp",
+  "out": "Sony ILCE-6300 Hasselblad Standard.dcp",
   "own": {
    "50936": [
     2,
-    24,
-    "48617373656c626c616420583144205374616e6461726400"
+    20,
+    "48617373656c626c6164205374616e6461726400"
    ],
    "50940": [
     11,
@@ -63,7 +63,7 @@
    ],
    "50942": [
     2,
-    117,
+    119,
     {
      "file": "tables/hasselblad_standard_50942.bin"
     }
@@ -78,100 +78,6 @@
     69120,
     {
      "file": "tables/hasselblad_standard_50982.bin"
-    }
-   ],
-   "51108": [
-    4,
-    1,
-    "01000000"
-   ],
-   "51109": [
-    10,
-    1,
-    "0000000010270000"
-   ]
-  },
-  "ref": "adobe_standard"
- },
- "hasselblad_x2d_nature": {
-  "out": "Sony ILCE-6300 Hasselblad X2D Nature.dcp",
-  "own": {
-   "50936": [
-    2,
-    22,
-    "48617373656c626c616420583244204e617475726500"
-   ],
-   "50940": [
-    11,
-    2050,
-    {
-     "file": "tables/hasselblad_x2d_nature_50940.bin"
-    }
-   ],
-   "50942": [
-    2,
-    115,
-    {
-     "file": "tables/hasselblad_x2d_nature_50942.bin"
-    }
-   ],
-   "50981": [
-    4,
-    3,
-    "5a0000001000000010000000"
-   ],
-   "50982": [
-    11,
-    69120,
-    {
-     "file": "tables/hasselblad_x2d_nature_50982.bin"
-    }
-   ],
-   "51108": [
-    4,
-    1,
-    "01000000"
-   ],
-   "51109": [
-    10,
-    1,
-    "0000000010270000"
-   ]
-  },
-  "ref": "adobe_standard"
- },
- "hasselblad_x2d_standard": {
-  "out": "Sony ILCE-6300 Hasselblad X2D Standard.dcp",
-  "own": {
-   "50936": [
-    2,
-    24,
-    "48617373656c626c616420583244205374616e6461726400"
-   ],
-   "50940": [
-    11,
-    2050,
-    {
-     "file": "tables/hasselblad_x2d_standard_50940.bin"
-    }
-   ],
-   "50942": [
-    2,
-    117,
-    {
-     "file": "tables/hasselblad_x2d_standard_50942.bin"
-    }
-   ],
-   "50981": [
-    4,
-    3,
-    "5a0000001000000010000000"
-   ],
-   "50982": [
-    11,
-    69120,
-    {
-     "file": "tables/hasselblad_x2d_standard_50982.bin"
     }
    ],
    "51108": [
