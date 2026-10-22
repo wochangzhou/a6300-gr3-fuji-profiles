@@ -31,8 +31,8 @@ n=0
 for f in glob.glob(fdir+'/*.xmp'):
     s=open(f).read(); s2,k=pat.subn(lambda m:m.group(1)+f'<rdf:li xml:lang="x-default">{FJ}</rdf:li>',s); n+=k; open(f,'w').write(s2)
 print('fuji files updated:',n)
-# Presets that only pick a profile still need explicit linear point curves, otherwise the RGB
-# curves of "Hasselblad X1D Nature 5500K" stay on the photo after switching to another preset.
+# Presets that only pick a profile still need explicit linear point curves, otherwise RGB point
+# curves set by another preset stay on the photo after switching to one of these.
 def reset_curves(path):
     s=open(path,encoding='utf-8').read()
     if 'PresetType="Normal"' not in s or 'ToneCurvePV2012Red' in s: return 0
