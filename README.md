@@ -50,43 +50,43 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 
 上游原版 `Sony ILCE-6300 Adobe Standard Linear.dcp` 和 22 个 LUT XMP，不加颜色表，不加曝光偏移。
 
-## 哈苏（`scripts/fit/hasselblad/`）
+## 哈苏（`scripts/fit/hasselblad/paired/`）
 
-以哈苏 X2D 的 Phocus 输出为准。哈苏只和自己比：同一张 X2D RAW 的两份导出逐像素配对，差异只来自渲染（同一帧、同一张色卡、同一种光），再把这个差异迁移到 A6300 自己的 Adobe Standard 上。A6300 的颜色不和任何哈苏照片直接拟合。
+以哈苏 X2D 的 Phocus 输出为准。只在哈苏自己身上学差异：同一张 X2D RAW 的两份导出逐像素配对，差异只来自渲染（同一帧、同一张色卡、同一种光）。A6300 的颜色不和任何哈苏照片直接拟合，也不用 A6300 的照片取样：颜色表的每个节点都由 DCP 的计算直接构造。
 
-渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset 0 → LookTable（90×16×16，同机配对拟合）→ 色调曲线（Standard 为 Phocus 灰阶曲线，Nature 在其上叠加 Phocus Nature 的反差）。不带 DefaultBlackRender，与 Adobe Standard 一样用默认的 Auto 黑位处理（Phocus 曲线是相对开着 Auto 的 Adobe Standard 导出测得的；设成 None 时暗部和中灰会亮约 1 L*）。理光移植版保留 None，与 Adobe 的 GR Camera 配置文件一致。
+渲染顺序：白平衡 → ForwardMatrix 和 HueSatMap（都是 A6300 的 Adobe Standard 原版）→ BaselineExposureOffset 0 → LookTable（90×32×32）→ 色调曲线（Standard 为 Phocus 灰阶曲线，Nature 在其上叠加 Phocus Nature 的反差）。不带 DefaultBlackRender，与 Adobe Standard 一样用默认的 Auto 黑位处理（Phocus 曲线是相对开着 Auto 的 Adobe Standard 导出测得的；设成 None 时暗部和中灰会亮约 1 L*）。理光移植版保留 None，与 Adobe 的 GR Camera 配置文件一致。
 
 ### 导出要求
 
-- X2D：同一个 RAW 在 Lightroom 导出 Adobe Standard（ProPhoto 16 位 TIFF），在 Phocus 导出 Standard 和 Nature（Adobe RGB 16 位 TIFF）。白平衡都点色卡灰块，镜头校正都关闭，中灰在导出时对齐（Adobe Standard N5 L* 45.4，Phocus Standard 44.2：Phocus 本来就略暗，属于它的色调，保留）。
-- A6300：同一 dpreview 影棚场景的 RAW，Lightroom Adobe Standard 导出（ProPhoto 16 位 TIFF），镜头校正关闭，白平衡点灰块，曝光调到中灰与 X2D 的 Adobe Standard 导出一致（N5 L* 约 45，−0.27 EV）。
+同一张 X2D RAW：Lightroom 导出 Adobe Standard（ProPhoto 16 位 TIFF），Phocus 导出 Standard 和 Nature（Adobe RGB 16 位 TIFF）。白平衡都点色卡灰块，镜头校正都关闭，中灰在导出时对齐（Adobe Standard N5 L* 45.4，Phocus Standard 44.2：Phocus 本来就略暗，属于它的色调，保留）。
 
-### Standard
+### 步骤
 
-1. **配对**（`paired/pairs_phocus.py`）：Lightroom Adobe Standard 与 Phocus Standard 两份导出，逐块校正残余位移后取约 7.9 万个 6×6 平整格。Adobe Standard → Phocus：中性格 ΔE00 1.16，彩色 2.96。
-2. **位置效应**（`paired/flatfield.py`）：Phocus 在色调曲线之前对画面做了随位置变化的增益（传感器/镜头的平场校正），相对 Lightroom 导出，边缘更亮、更偏黄（r=0.9 处 R/G/B 增益 1.085/1.055/0.996；中性格 Δb 从中心约 0 到边缘 +2.4）。按中性格建模（对数增益 = 亮度项 + 曲线斜率 × r²/r⁴/r⁶ 多项式），在曲线之前从 Phocus 一侧扣除，扣除后各环带 Δb 在 ±0.5 以内。
-3. **色调曲线**（`paired/phocus_tone.py`）：中性格（Adobe Standard C*<3）上 Adobe Standard → Phocus 的 ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = ACR3 默认曲线（Adobe Standard 用的曲线）输出的 L* 加上这个差值。Phocus 中间调略暗、高光略亮：ACR3 L* 33.4/51.3/68.6/81.7/91.9 → 32.9/50.4/67.5/82.6/93.3。写出起点配置文件：A6300 Adobe Standard 的矩阵和 HueSatMap、恒等 LookTable、这条曲线、曝光偏移 0。
-4. **A6300 取样**（`a6300_cells.py`）：A6300 RAW（`scripts/raw/decode.py` 的线性相机 RGB）在 /2 网格上取 6×6 平整格，算 Adobe Standard 基础颜色（白平衡 → ForwardMatrix → HueSatMap，按白块归一化曝光，与 `rawbase.py` 相同）。RAW 到 Lightroom 导出的位置由逐块配准得到（关闭镜头校正后只差 6 px 平移，残差 0.02 px）。共约 9.2 万格，两个色轮（约 4700 格）不参与训练。
-5. **迁移到 A6300**（`paired/synth.py`）：把配对差异（在 Lab 里按颜色核回归，记为 g）作用到 A6300 自己的 Adobe Standard 导出上，得到每个格子的合成目标。只保留 g 有数据支撑的格子。
-6. **颜色表**（`paired/pure_correct.py`）：从第 3 步的起点出发拟合合成目标（核回归，按 125px 棋盘格分训练/检验，不做高饱和淡出）。模型曝光 `KMODEL=0.4212`：在这个值下 ACR3 曲线给出的 A6300 色卡灰阶与 A6300 的 Adobe Standard 导出一致（N8–N3.5 平均差 0.36 L*）。幅度上限：色相 ±25°，饱和度 ×0.6–1.6，明度 ×0.85–1.15（实际用到的最大值约 16°、×0.88–1.23、×0.98–1.06）。LookTable 在中性色上不改明度。
+1. **配对**（`pairs_phocus.py`）：Lightroom Adobe Standard 与 Phocus Standard，逐块校正残余位移后取约 7.9 万个 6×6 平整格。Adobe Standard → Phocus：中性格 ΔE00 1.16，彩色 2.96。
+2. **位置效应**（`flatfield.py`）：Phocus 在色调曲线之前对画面做了随位置变化的增益（平场校正），相对 Lightroom 导出边缘更亮、更偏黄（r=0.9 处 R/G/B 增益 1.085/1.055/0.996；中性格 Δb 从中心约 0 到边缘 +2.4）。按中性格建模（对数增益 = 亮度项 + 曲线斜率 × r²/r⁴/r⁶ 多项式），在曲线之前从 Phocus 一侧扣除，扣除后各环带 Δb 在 ±0.5 以内。
+3. **色调曲线**（`phocus_tone.py`）：中性格（Adobe Standard C*<3）上 Adobe Standard → Phocus 的 ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = ACR3 默认曲线（Adobe Standard 用的曲线，DNG SDK `kAdobeDefaultCurve`）输出的 L* 加上这个差值：ACR3 L* 33.4/51.3/68.6/81.7/91.9 → 32.9/50.4/67.5/82.6/93.3。写出起点配置文件（A6300 Adobe Standard 的矩阵和 HueSatMap、这条曲线、曝光偏移 0）。
+4. **差异模型 g**（`analytic.py` 内）：Adobe Standard Lab → Phocus Lab 的核回归（Lab 分箱取中位差，高斯核加权）。参数用左右半幅交叉验证选定（dpreview 场景左右两边是对称摆放的不同物体，比随机切分更能反映对新物体的推广）：σ = (4, 10, 10)、收缩 λ = 0.02，数据支撑不足处按支撑量渐弱到 0。在没见过的物体上：彩色 ΔE00 2.65（不做 g）→ 1.07，C*>30 → 1.27。
+5. **逐节点构造**（`analytic.py`）：对颜色表的每个节点 X（已乘曝光的基础颜色），按 DNG 参考流程算出 A6300 的 Adobe Standard 会把它渲染成什么（Adobe Standard 自己的 LookTable + ACR3 曲线），套上 g 得到 Phocus 目标，再按本配置文件的色调曲线（保色相 RGB 曲线）反解出节点应取的值。不依赖场景取样，整个颜色空间都有定义。稳定化：最亮两层沿用下一层（曲线在白附近太平，反解病态）；幅度上限色相 ±25°、饱和度 ×0.6–1.6、明度 ×0.85–1.15；中性轴不改（灰阶只由曲线决定）；饱和度 0.12 以下渐弱到不改。
+6. **单调化**（`monotone.py`）：沿饱和度方向逐个节点（每个区间再检查 3 个中间点），保证渲染出的 C* 不回落；只上调出问题节点的饱和度倍数（约 1% 的节点，最多 ×1.25）。
 
-检验（ΔE2000 均值，对合成目标；“起点”为恒等 LookTable）：检验彩色 1.00 → 0.90，中性 0.95 → 0.92，色轮区域（未训练）1.13 → 1.06。按模型算，A6300 色卡灰阶与 X2D 的 Phocus 导出在白到 N5 之间相差 ≤0.5 L*。
+检验（A6300 dpreview 影棚 RAW 上约 9 万个格子，目标 = g 作用于 A6300 自己的 Lightroom Adobe Standard 导出；ΔE2000 均值；括号内为此前“在格子上拟合颜色表”的版本）：检验彩色 0.87（0.91），中性 1.12（1.09），色轮区域 0.86（1.06），高饱和 s>0.5 0.68（0.92）。约 0.9 是格子目标本身的噪声地板。
+
+压力测试（`stress.py`，合成网格：色相 1° × 饱和度 0.02 × 24 档亮度，与 Adobe Standard 对照）：无亮度反转、无色相顺序颠倒，饱和度反转 0.02%（最大回落 1.1 C*）。超出配对数据的高饱和区（s≥0.85）偏离 Adobe Standard 平均 0.9、最大 12（此前的拟合版本 9.2、最大 56，外推失控）。
 
 ### Nature（X2D Phocus Standard → Nature，作为相对 Standard 的差别）
 
-1. **配对**（`paired/nature_pairs.py`）：同一张 X2D RAW 的 Phocus Standard 与 Phocus Nature 导出（同一软件、同尺寸，像素对齐），取约 6 万个平整格。两份的白平衡一致：色卡灰阶 Δa、Δb ≤0.35，全图中性格 Δa +0.1～+0.4、Δb −0.3～+0.1，没有随画面位置的变化。Nature 的反差更大（中性格 ΔL*：暗部 −6，L* 40–60 −2.2，L* 60–80 +2.3，高光 +3.3），彩色更浓（色卡 C* +2～+12，橙、黄、绿、中红、紫蓝约 +10），色相基本不变（蓝、青、红 +4～+6°）。
-2. **色调和颜色**（`paired/nature_build.py`）：色调 = 中性格的 Nature−Standard ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = Standard 曲线输出的 L* 加上这个差值，保持单调（Standard L* 10/30/50/70/90 → −5.2/−5.0/−1.2/+2.8/+3.4）。颜色 = Lab 核回归 g（与 `synth.py` 同一估计）作用于 Standard 在 A6300 每个格子上的渲染，得到 Nature 目标；再用 `pure_correct.py`（`KMODEL=0.4212`，从 Nature 曲线、恒等 LookTable 出发）拟合颜色表。曝光偏移 0。
-3. **结果**：检验彩色 0.71 → 0.38，中性 0.35 → 0.32，色轮区域 0.69 → 0.42。
+1. **配对**（`nature_pairs.py`）：同一张 X2D RAW 的 Phocus Standard 与 Phocus Nature 导出（同一软件、同尺寸，像素对齐），取约 6 万个平整格。两份的白平衡一致，没有随画面位置的变化。Nature 的反差更大（中性格 ΔL*：暗部 −6，L* 40–60 −2.2，L* 60–80 +2.3，高光 +3.3），彩色更浓（色卡 C* +2～+12），色相基本不变。
+2. **色调曲线**（`nature_tone.py`）：中性格的 Nature−Standard ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = Standard 曲线输出的 L* 加上这个差值，保持单调（Standard L* 10/30/50/70/90 → −5.2/−5.0/−1.2/+2.8/+3.4）。
+3. **颜色表**：同 Standard 的第 4–6 步，源渲染换成上面做好的 Standard（它自己的 LookTable 和曲线），g 为 Phocus Standard Lab → Phocus Nature Lab（交叉验证：彩色 2.75 → 0.72，C*>30 → 1.33）。饱和度反转 0.11%，集中在接近黑色的深暗部和 s≥0.94。曝光偏移 0。
 
 ### 复现步骤
 
-需要：上面“导出要求”里的四份 TIFF（X2D 的 Lightroom Adobe Standard、Phocus Standard、Phocus Nature，A6300 的 Lightroom Adobe Standard，前三份转成 `.npy`），A6300 的 dpreview 日光 RAW，ACR3 默认曲线（DNG SDK `kAdobeDefaultCurve`，1025 点文本）。脚本在 `scripts/fit/hasselblad/`，参数见各文件开头。
+需要：上面三份 X2D 导出（Lightroom Adobe Standard 和 Phocus Standard 转成 `.npy`），ACR3 默认曲线（DNG SDK `kAdobeDefaultCurve`，1025 点文本），本机 Lightroom 的 `Sony ILCE-6300 Adobe Standard.dcp`。参数见各文件开头。
 
-1. `paired/pairs_phocus.py` → `paired/flatfield.py` → `paired/phocus_tone.py`：X2D 配对、扣除位置效应、Phocus 曲线和起点配置文件。
-2. `scripts/raw/decode.py`（A6300 RAW）→ `a6300_cells.py`：A6300 格子。白平衡用 `data/raw/patches_raw.json`。
-3. `paired/synth.py` → `KMODEL=0.4212 paired/pure_correct.py`：Standard。
-4. `paired/nature_pairs.py` → `paired/nature_build.py`（用第 3 步的 Standard）→ `KMODEL=0.4212 paired/pure_correct.py`（起点为 `nature_build.py` 写出的 `start.dcp`）：Nature。
-5. 用 `scripts/export_tables.py` 把结果 DCP 里本项目自己的标签（LookTable、色调曲线、曝光偏移、名称）写进 `data/profiles.json` 和 `data/tables/`，`build.sh` 重建后应与拟合出的 DCP 一致。
+1. Standard：`pairs_phocus.py` → `flatfield.py` → `phocus_tone.py` → `analytic.py`（源为 `as:<Adobe Standard.dcp>:<acr3>`，90 32 32）→ `monotone.py`。
+2. Nature：`nature_pairs.py` → `nature_tone.py`（用第 1 步的 Standard）→ `analytic.py`（源为第 1 步的 Standard）→ `monotone.py`。
+3. 用 `scripts/export_tables.py` 把结果 DCP 里本项目自己的标签（LookTable、色调曲线、曝光偏移、名称）写进 `data/profiles.json` 和 `data/tables/`，`build.sh` 重建后应与拟合出的 DCP 一致。
+4. 检查：`stress.py`。
 
 ## 预设（`scripts/groups.py`、`templates/hasselblad/`）
 
@@ -96,6 +96,7 @@ DCP 不能指定分组，所以给每个配置文件生成 Look 类型的 XMP（
 
 - 合成颜色扫描：检查高饱和区是否被 LookTable 推出 sRGB。
 - 真实照片：在 A6300 照片上统计超出 sRGB 的像素比例。
+- 哈苏：`scripts/fit/hasselblad/paired/stress.py`（饱和度、亮度、色相单调性，平滑度，sRGB 外溢，数据之外的偏离）。
 
 ## 局限
 
