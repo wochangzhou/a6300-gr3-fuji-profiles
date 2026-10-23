@@ -5,11 +5,11 @@
 # Then: top two value layers copied from the layer below (the tone curve is too flat there to invert), clamp
 # (hue +-25 deg, sat x0.6-1.6, value x0.85-1.15), neutral axis identity (tone only from the curve), corrections faded
 # to identity below HSV saturation 0.12. Run monotone.py afterwards.
-# Usage: analytic.py <lab dir> <scripts> <pairs.npy> <src lab: lr|phocus> <SRC.dcp | "as:<Adobe Standard.dcp>:<acr3.txt>"> <START.dcp> <H> <S> <V> <name> <note> <out.dcp>
-# (used: 90 32 32; Standard: SRC = the A6300 Adobe Standard, pairs = flatfield.py output, lr;
-#  Nature: SRC = the Standard built here, pairs = nature_pairs.py output, phocus; START = nature_tone.py output)
+# Usage: analytic.py <lab dir> <scripts> <pairs.npy> <src lab: lr|phocus> <target lab: lr|phocus> <SRC.dcp | "as:<Adobe Standard.dcp>:<acr3.txt>"> <START.dcp> <H> <S> <V> <name> <note> <out.dcp>
+# (used: 90 32 32; Standard: SRC = the A6300 Adobe Standard, pairs = cm_pairs.py output, lr lr, START = cm_tone.py output;
+#  Nature: SRC = the Standard built here, pairs = nature_pairs.py output, phocus phocus, START = nature_tone.py output)
 import sys,struct,numpy as np
-LABDIR,G,PAIRS,SRCLAB,SRC,START,HD,SD,VD,NAME,NOTE,OUT=sys.argv[1:13]; HD,SD,VD=int(HD),int(SD),int(VD)
+LABDIR,G,PAIRS,SRCLAB,TGTLAB,SRC,START,HD,SD,VD,NAME,NOTE,OUT=sys.argv[1:14]; HD,SD,VD=int(HD),int(SD),int(VD)
 sys.path.insert(0,LABDIR); from lab import *
 sys.path.insert(0,G); from dcp import read
 SIG=np.array([4.0,10.0,10.0]); LAM=0.02; FADE=0.5      # g parameters chosen by left/right-half cross-validation
@@ -50,7 +50,7 @@ else:
     ts=read(SRC); LTs,ds,es=tbl(ts); scx,scy=curve(ts)
 def render_src(X): return rgbtone(look(X,LTs,ds,es),scx,scy)
 # g
-Pp=np.load(PAIRS); A=lab_lr(Pp[:,2:5]) if SRCLAB=="lr" else lab_phocus(Pp[:,2:5]); B=lab_phocus(Pp[:,5:8])
+Pp=np.load(PAIRS); A=lab_lr(Pp[:,2:5]) if SRCLAB=="lr" else lab_phocus(Pp[:,2:5]); B=lab_lr(Pp[:,5:8]) if TGTLAB=="lr" else lab_phocus(Pp[:,5:8])
 k=np.stack([np.floor(A[:,0]/4),np.floor(A[:,1]/3),np.floor(A[:,2]/3)],1); u,inv_=np.unique(k,axis=0,return_inverse=True); inv_=inv_.ravel()
 BC=np.array([np.median(A[inv_==j],0) for j in range(len(u))]); BD=np.array([np.median((B-A)[inv_==j],0) for j in range(len(u))]); BN=np.minimum(np.bincount(inv_),30)
 def g(q):

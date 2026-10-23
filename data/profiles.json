@@ -16,7 +16,7 @@
    ],
    "50942": [
     2,
-    101,
+    104,
     {
      "file": "tables/hasselblad_nature_50942.bin"
     }
@@ -63,7 +63,7 @@
    ],
    "50942": [
     2,
-    111,
+    102,
     {
      "file": "tables/hasselblad_standard_50942.bin"
     }

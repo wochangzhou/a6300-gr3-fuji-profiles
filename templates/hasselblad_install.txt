@@ -1,4 +1,4 @@
-哈苏风格（Sony A6300：Standard 按哈苏 X2D 的 Phocus Standard，含 Phocus 色调曲线；Nature 按 X2D 的 Phocus Nature 相对 Standard 的差别）
+哈苏风格（Sony A6300：Standard 按哈苏 X2D 在 Lightroom 里的 Camera Matching（Camera Standard）；Nature 按 X2D 的 Phocus Nature 相对 Phocus Standard 的差别）
 
 安装（macOS）：
 1. 把 CameraProfiles 里的 .dcp 复制到

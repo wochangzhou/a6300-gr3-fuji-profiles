@@ -3,6 +3,7 @@
 # Rows: x, y, Standard rgb, Nature rgb (both Phocus Adobe RGB encoding).
 import sys,numpy as np,tifffile
 sys.path.insert(0,sys.argv[1]); from lab import *
+if "LAB" not in globals() or LAB is None: LAB=lab_phocus
 L=tifffile.memmap(sys.argv[2]); X=tifffile.memmap(sys.argv[3]); assert L.shape==X.shape
 F=4
 def box(a):
@@ -17,7 +18,7 @@ for y in range(3,h-C-3,C):
         if (a.std(0)/np.maximum(a.mean(0),1)).max()>0.04 or (b.std(0)/np.maximum(b.mean(0),1)).max()>0.04: continue
         rows.append((x*F,y*F,*a.mean(0),*b.mean(0)))
 R=np.array(rows); np.save(sys.argv[4],R)
-A=lab_phocus(R[:,2:5]); B=lab_phocus(R[:,5:8]); Cc=np.hypot(A[:,1],A[:,2]); neu=Cc<3
+A=LAB(R[:,2:5]); B=LAB(R[:,5:8]); Cc=np.hypot(A[:,1],A[:,2]); neu=Cc<3
 print(f"cells {len(R)} (neutral {neu.sum()})")
 for lo,hi in ((0,20),(20,40),(40,60),(60,80),(80,101)):
     m=neu&(A[:,0]>=lo)&(A[:,0]<hi)
