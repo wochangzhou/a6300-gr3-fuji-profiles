@@ -64,8 +64,8 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 
 ### Standard（X2D Lightroom Adobe Standard → Camera Matching）
 
-1. **配对**（`cm_pairs.py`）：两份 Lightroom 导出像素对齐，取约 8 万个 6×6 平整格。中性格白平衡一致（Δa 0～+0.6，Δb −0.15～−0.4），彩色格 Camera Matching 平均 C* +2.4。
-2. **色调曲线**（`cm_tone.py`）：中性格（Adobe Standard C*<3）上 Adobe Standard → Camera Matching 的 ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = ACR3 默认曲线（Adobe Standard 用的曲线，DNG SDK `kAdobeDefaultCurve`）输出的 L* 加上这个差值。两者灰阶几乎相同（|ΔL*| ≤ 0.23）。写出起点配置文件（A6300 Adobe Standard 的矩阵和 HueSatMap、这条曲线、曝光偏移 0）。
+1. **配对**（`cm_pairs.py`）：两份 Lightroom 导出像素对齐，取约 8 万个 6×6 平整格。中性格白平衡一致（Δa −0.1～+0.4，Δb −0.2～+0.1），彩色格 Camera Matching 平均 C* +2.5。
+2. **色调曲线**（`cm_tone.py`）：中性格（Adobe Standard C*<3）上 Adobe Standard → Camera Matching 的 ΔL*（按 L* 每 2.5 一段、平滑、两端收敛到 0），新曲线 = ACR3 默认曲线（Adobe Standard 用的曲线，DNG SDK `kAdobeDefaultCurve`）输出的 L* 加上这个差值。两者灰阶几乎相同（|ΔL*| ≤ 0.20）。写出起点配置文件（A6300 Adobe Standard 的矩阵和 HueSatMap、这条曲线、曝光偏移 0）。
 3. **差异模型 g**（`analytic.py` 内）：Adobe Standard Lab → Camera Matching Lab 的核回归（Lab 分箱取中位差，高斯核加权）。参数用左右半幅交叉验证选定（dpreview 场景左右两边是对称摆放的不同物体，比随机切分更能反映对新物体的推广）：σ = (4, 10, 10)、收缩 λ = 0.02，数据支撑不足处按支撑量渐弱到 0。
 4. **逐节点构造**（`analytic.py`）：对颜色表的每个节点 X（已乘曝光的基础颜色），按 DNG 参考流程算出 A6300 的 Adobe Standard 会把它渲染成什么（Adobe Standard 自己的 LookTable + ACR3 曲线），套上 g 得到目标，再按本配置文件的色调曲线（保色相 RGB 曲线）反解出节点应取的值。不依赖场景取样，整个颜色空间都有定义。稳定化：最亮两层沿用下一层（曲线在白附近太平，反解病态）；幅度上限色相 ±25°、饱和度 ×0.6–1.6、明度 ×0.85–1.15；中性轴不改（灰阶只由曲线决定）；饱和度 0.12 以下渐弱到不改。
 5. **单调化**（`monotone.py`）：沿饱和度方向逐个节点（每个区间再检查 3 个中间点），保证渲染出的 C* 不回落；只上调出问题节点的饱和度倍数（约 0.5% 的节点，最多 ×1.07）。
@@ -81,7 +81,7 @@ dpreview 影棚不同年份、不同机型的拍摄批次，灯光、色卡版�
 合成网格：色相 1° × 饱和度 0.02 × 24 档亮度，与 Adobe Standard 对照。
 
 - Standard：无饱和度、亮度、色相反转（饱和度最大回落 0.6 C*）；超出配对数据的高饱和区（s≥0.85）偏离 Adobe Standard 平均 1.05、最大 12.3。
-- Nature：饱和度反转 0.05%（最大回落 3.6 C*，集中在接近黑色的深暗部和 s≥0.94），亮度反转 0.00%（最大 0.06），无色相反转；s≥0.85 偏离平均 1.9、最大 19.0。
+- Nature：饱和度反转 0.05%（最大回落 3.5 C*，集中在接近黑色的深暗部和 s≥0.94），亮度反转 0.00%（最大 0.06），色相反转 0.002%；s≥0.85 偏离平均 1.9、最大 19.8。
 
 ### 复现步骤
 
