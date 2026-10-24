@@ -14,11 +14,9 @@ cd upstream
 echo "== 1/4 port GR III / GR IV looks onto the A6300 base"
 python3 -I "$HERE/scripts/port.py" "$HERE/scripts" "$LRP" . ../ported "GR III"
 python3 -I "$HERE/scripts/port.py" "$HERE/scripts" "$LRP" . ../ported "GR IV"
-echo "== 2/4 RAW chart -> Adobe Standard base colours; fit A6300 -> GR hue/saturation alignment"
-python3 -I "$HERE/scripts/rawbase.py" "$HERE/scripts" "$LRP" "$HERE/data/raw/patches_raw.json" "$W/base.json" "$HERE/data/raw/wheel_raw.json" "$W/wheel_base.json"
+echo "== 2/4 align GR III / GR IV to the A6300 (dense scene + chart-anchored model from data/gr)"
 for C in gr3:"GR III" gr4:"GR IV"; do
-  python3 -I "$HERE/scripts/rawfit.py" "$HERE/scripts" "$W/base.json" "$W/wheel_base.json" "${C%%:*}" "$W/model_${C%%:*}.json"
-  python3 -I "$HERE/scripts/gr/rawmatch.py" "$HERE/scripts" "$LRP" "$W/model_${C%%:*}.json" ../ported ../final "${C#*:}"
+  python3 -I "$HERE/scripts/gr/rawmatch.py" "$HERE/scripts" "$LRP" "$HERE/data/gr/model_${C%%:*}.json" ../ported ../final "${C#*:}" "$HERE/data/gr/monotone_${C%%:*}.json"
 done
 echo "== 3/4 Hasselblad Standard / Nature (fitted tables on the A6300 Adobe Standard)"
 python3 -I "$HERE/scripts/assemble.py" "$LRP" "$HERE/data" ../assembled

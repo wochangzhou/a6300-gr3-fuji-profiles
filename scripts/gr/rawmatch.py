@@ -1,17 +1,19 @@
-# Build chart-aligned GR III / GR IV profiles from the RAW-fitted A6300 -> GR base correction:
-# rotate each LookTable node's input (exposure-scaled Adobe Standard base) by the fitted hue shift and
-# scale its saturation and value, then look up the ported GR style. Exposure is normalised on the chart
-# white, so the value ratio is per colour (warm patches are ~5-9% darker on the GR than on the A6300).
-# Usage: rawmatch.py <scripts> <LR_PROFILES> <model.json> <ported_dir> <out_dir> <"GR III"|"GR IV">
+# Build aligned GR III / GR IV profiles from the A6300 -> GR base-colour alignment model (data/gr/model_*.json,
+# fitted by scripts/fit/gr/): rotate each LookTable node's input (exposure-scaled Adobe Standard base) by the
+# modelled hue shift, scale its saturation and value, then look up the ported GR style. Model points carry a
+# weight (7th field, kernel weight = its square root). Optional monotone file (data/gr/monotone_*.json): the
+# saturation entries that scripts/fit/hasselblad/paired/monotone.py raised, applied as stored.
+# Usage: rawmatch.py <scripts> <LR_PROFILES> <model.json> <ported_dir> <out_dir> <"GR III"|"GR IV"> [monotone.json]
 import sys,struct,json,math,os
 S=sys.argv[1]; LRP=sys.argv[2]; MJSON=sys.argv[3]; SRC_DIR=sys.argv[4]; DST_DIR=sys.argv[5]; CAM=sys.argv[6]
+MONO=json.load(open(sys.argv[7])) if len(sys.argv)>7 else {}
 sys.argv=[sys.argv[0],S,LRP,'.','/dev/null',CAM]
 exec(open(S+'/port.py').read().split('HD,SD,VD=90,32,16')[0])
 M=json.load(open(MJSON)); TR=M["train"]; PR={int(k):v for k,v in M["params"].items()}
 def pred(h,s,k):
     sh,ss,lam=PR[k]; num=0;wt=lam
     for p in TR:
-        d=((h-p[1])+180)%360-180; w=math.exp(-0.5*(d/sh)**2)*math.exp(-0.5*((s-p[2])/ss)**2); num+=w*p[k]; wt+=w
+        d=((h-p[1])+180)%360-180; w=math.exp(-0.5*(d/sh)**2)*math.exp(-0.5*((s-p[2])/ss)**2)*(math.sqrt(p[6]) if len(p)>6 else 1.0); num+=w*p[k]; wt+=w
     return num/wt
 def corr(hdeg,s):
     fade=min(1.0,s/0.15)   # leave neutrals alone
@@ -31,6 +33,7 @@ for style in ["Standard","Positive Film","Negative Film","Vivid","Monotone","Sof
                 X2=hsv2rgb((h0+dh*6/360)%6,min(s0*ks,1.0),dec(min(enc(v0/E)*kv,1.0)))
                 T=P.apply([E*x for x in X2]); hT,sT,vT=rgb2hsv(*T); o=3*(vi*H*Sd+hi*Sd+si)
                 d[o]=((hT-h0+3)%6-3)*60 if sT>1e-4 else 0.0; d[o+1]=min(sT,1)/s0; d[o+2]=enc(vT)/enc(v0) if v0>1e-7 else 1
+    for i,v in MONO.get(style,{}).items(): d[int(i)]=v
     nt={k:(v[0],v[1],v[3]) for k,v in t.items()}; nt[50982]=(11,len(d),struct.pack('<%df'%len(d),*d))
     beo=tag(t,51109)[0]; nt[51109]=(10,1,struct.pack('<ii',int(round(beo*10000)),10000))
     write(f"{DST_DIR}/Sony ILCE-6300 {CAM} {style}.dcp",nt); print("built",style)
