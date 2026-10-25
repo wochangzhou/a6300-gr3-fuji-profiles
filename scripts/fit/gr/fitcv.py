@@ -13,6 +13,11 @@ def hsv(p):
 def feats(a,b):
     ha,sa,va=hsv(a); hb,sb,vb=hsv(b); return ha,sa,((hb-ha+180)%360)-180,np.log(np.maximum(sb,1e-4)/np.maximum(sa,1e-4)),np.log(np.maximum(enc(vb),1e-4)/np.maximum(enc(va),1e-4)),sa,sb
 h,s,dh,ls,lv,sa,sb=feats(d['baseA'],d['baseB']); col=(sa>0.08)&(sb>0.08); wh=d['wheel']>0; x=d['xy'][:,0]
+# the four portraits (A6300 px / 6.024): dpreview swapped the prints between shooting batches, so they never train
+PT=[(88,234,190,438),(812,232,915,440)]; q=d['xy']/6.024
+pt=np.zeros(len(q),bool)
+for a0,b0,a1,b1 in PT: pt|=(q[:,0]>=a0)&(q[:,0]<=a1)&(q[:,1]>=b0)&(q[:,1]<=b1)
+ex=wh|pt
 left=x<np.median(x)
 Y={3:dh,4:ls,5:lv}
 def bins(m):
@@ -29,7 +34,7 @@ def pred(hq,sq,pts,sh,ss,lam,k,weighted=True):
 def err(m,pts,params,weighted=True):
     return [np.mean(np.abs(pred(h[m],s[m],pts,*params[k],k,weighted)-Y[k][m])) for k in (3,4,5)]
 GRID=[(sh,ss,lam) for sh in (10,15,20,30) for ss in (0.1,0.15,0.2,0.35) for lam in (0.1,0.5,2,8)]
-trL=bins(col&~wh&left); trR=bins(col&~wh&~left); teL=col&~wh&left; teR=col&~wh&~left
+trL=bins(col&~ex&left); trR=bins(col&~ex&~left); teL=col&~ex&left; teR=col&~ex&~left
 rng=np.random.default_rng(0); sub=lambda m: np.where(m)[0][rng.permutation(m.sum())[:4000]]
 iL,iR=sub(teL),sub(teR)
 best={}
@@ -38,7 +43,7 @@ for k in (3,4,5):
     for g in GRID:
         e=(np.mean(np.abs(pred(h[iR],s[iR],trL,*g,k)-Y[k][iR]))+np.mean(np.abs(pred(h[iL],s[iL],trR,*g,k)-Y[k][iL])))/2; sc.append((e,g))
     best[k]=min(sc)[1]; print(f"k{k} best {best[k]} cv {min(sc)[0]:.4f}")
-ALL=bins(col&~wh); HAVE=CUR!='-'
+ALL=bins(col&~ex); HAVE=CUR!='-'
 if HAVE: M=json.load(open(CUR)); TRc=M['train']; Pc={int(k):v for k,v in M['params'].items()}
 iW=np.where(col&wh)[0]
 def report(lbl,m):
