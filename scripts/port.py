@@ -76,6 +76,22 @@ def write(path,tags):
 def f32(vals): return (11,len(vals),struct.pack('<%df'%len(vals),*vals))
 
 HD,SD,VD=90,32,16
+# Lightroom compresses highlights before the LookTable (hue-preserving shoulder s, data/lr_shoulder.json, measured by
+# scripts/fit/checks/lr_validate.py): a LookTable sees s(E*base), not E*base, for the original GR style and for the port.
+import json as _json,os as _os
+_SH=_json.load(open(_os.path.join(sys.argv[1],'..','data','lr_shoulder.json')))[MODEL]; _SX,_SY=_SH['x'],_SH['y']
+def _lin(x,xs,ys):
+    if x<=xs[0]: return ys[0]
+    for i in range(1,len(xs)):
+        if x<=xs[i]: return ys[i-1]+(ys[i]-ys[i-1])*(x-xs[i-1])/(xs[i]-xs[i-1])
+    return ys[-1]+(ys[-1]-ys[-2])*(x-xs[-1])/(xs[-1]-xs[-2])
+def _hp(rgb,fn):
+    o=sorted(range(3),key=lambda k:rgb[k]); lo,mi,hi=[max(rgb[k],0.0) for k in o]; L_,H_=fn(lo),fn(hi)
+    M_=L_+(H_-L_)*((mi-lo)/(hi-lo) if hi>lo else 0); out=[0.0]*3; out[o[0]],out[o[1]],out[o[2]]=L_,M_,H_; return out
+s_fwd=lambda rgb:_hp(rgb,lambda x:_lin(x,_SX,_SY))
+def s_inv(rgb):   # above the measured ramp (beyond the raw white point) hold the top: scale down, no extrapolation
+    m=max(rgb); top=_SY[-1]; rgb=[x*top/m for x in rgb] if m>top else rgb
+    return _hp(rgb,lambda y:_lin(y,_SY,_SX))
 for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Soft Monotone","Hard Monotone"]:
     pf=read(f"{LR}/Camera/Ricoh {MODEL}/RICOH {MODEL} Camera {style}.dcp")
     camToPP_PF=mm(XYZ2PP,m3(tag(pf,50965)))
@@ -84,7 +100,7 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
     # Both cameras are normalised to the same scene white, so both LookTables see E*base.
     E=2**(tag(pf,51109)[0] if 51109 in pf else 0.0)
     def target(c):
-        p=[E*x for x in mv(camToPP_PF,c)]; return LOOK.apply(p) if LOOK else [min(x,1.0) for x in p]
+        p=s_fwd([E*x for x in mv(camToPP_PF,c)]); return LOOK.apply(p) if LOOK else [min(x,1.0) for x in p]
     out=[0.0]*(HD*SD*VD*3); worst=0
     for vi in range(VD):
         v=dec(vi/(VD-1)) if vi else 1e-4
@@ -92,7 +108,7 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
             for si in range(SD):
                 s=max(si/(SD-1),1e-3)
                 X=hsv2rgb(hi*6/HD,s,v)
-                c,err=base_inv([x/E for x in X]); worst=max(worst,err)
+                c,err=base_inv([x/E for x in s_inv(X)]); worst=max(worst,err)
                 T=target(c); hT,sT,vT=rgb2hsv(*T); sT=min(sT,1.0); hX,sX,vX=rgb2hsv(*X)
                 dh=((hT-hX+3)%6-3)*60 if sT>1e-4 else 0.0
                 ss=sT/sX if si>0 else 1.0
@@ -112,5 +128,5 @@ for style in ["Positive Film","Negative Film","Standard","Vivid","Monotone","Sof
     NEW=Table((HD,SD,VD),out,1); random.seed(1); e=0
     for _ in range(3000):
         c=[random.random()**2*0.9 for _ in range(3)]
-        a=NEW.apply([E*x for x in base(c)]); b=target(c); e=max(e,max(abs(enc(a[k])-enc(b[k])) for k in range(3)))
+        a=NEW.apply(s_fwd([E*x for x in base(c)])); b=target(c); e=max(e,max(abs(enc(a[k])-enc(b[k])) for k in range(3)))
     print(f"{style}: inverse residual {worst:.1e}, max round-trip err (sRGB-encoded) {e:.3f}")
